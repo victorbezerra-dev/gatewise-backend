@@ -9,6 +9,7 @@ public interface IUserRepository
     Task<User?> GetByIdAsync(string id);
     Task<User> CreateAsync(User user);
     Task UpdateAsync(string id, UserUpsertDto user);
+    Task UpdatePublicKeyAsync(string id, string newPublicKeyPem);
     Task DeleteAsync(string id);
     Task<User?> GetByEmailOrRegistrationAsync(string email, string registrationNumber);
 

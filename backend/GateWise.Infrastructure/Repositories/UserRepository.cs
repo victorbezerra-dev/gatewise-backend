@@ -65,6 +65,17 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task UpdatePublicKeyAsync(string id, string newPublicKeyPem)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user == null)
+            throw new Exception("User not found");
+
+        user.DevicePublicKeyPem = newPublicKeyPem;
+        await _context.SaveChangesAsync();
+    }
+
+
     public async Task DeleteAsync(string id)
     {
         var user = await _context.Users.FindAsync(id);

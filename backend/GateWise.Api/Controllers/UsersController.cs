@@ -3,6 +3,7 @@ using GateWise.Core.DTOs;
 using GateWise.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace GateWise.Api.Controllers;
 
@@ -30,10 +31,35 @@ public class UsersController : ControllerBase
     }
 
     [Authorize()]
+    [HttpGet("me")]
+    public async Task<ActionResult<User>> GetMe()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var user = await _repository.GetByIdAsync(userId);
+        return user == null ? NotFound() : Ok(user);
+    }
+
+    [Authorize]
+    [HttpPatch("me/public-key")]
+    public async Task<IActionResult> UpdatePublicKey([FromBody] UpdatePublicKeyDto dto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        await _repository.UpdatePublicKeyAsync(userId, dto.DevicePublicKeyPem);
+        return NoContent();
+    }
+
+
+    [Authorize()]
     [HttpPatch("{id}")]
     public async Task<IActionResult> Update(string id, [FromBody] UserUpsertDto user)
     {
-
         await _repository.UpdateAsync(id, user);
         return NoContent();
     }
