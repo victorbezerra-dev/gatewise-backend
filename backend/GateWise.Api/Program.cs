@@ -14,13 +14,16 @@ Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<ILabRepository, LabRepository>();
+
+builder.Services.AddScoped<ISpaceRepository, SpaceRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<ILabAccessManagerRepository, LabAccessManagerRepository>();
+builder.Services.AddScoped<ISpaceManagerRepository, SpaceManagerRepository>();
 builder.Services.AddScoped<IAccessGrantRepository, AccessGrantRepository>();
-builder.Services.AddSignalR();
-builder.Services.AddScoped<ILabAccessService, LabAccessService>();
 builder.Services.AddScoped<IAccessLogRepository, AccessLogRepository>();
+builder.Services.AddScoped<ISpaceAccessService, SpaceAccessService>();
+
+builder.Services.AddSignalR();
+
 builder.Services.AddSingleton(sp =>
 {
     return new MqttClientOptionsBuilder()
@@ -43,6 +46,7 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
+
 builder.Services.AddSingleton<IAuthorizationHandler, GatewiseClientHandler>();
 builder.Services.AddScoped<IClaimsTransformation, KeycloakClaimsTransformer>();
 builder.Services.AddControllers();
@@ -66,20 +70,15 @@ app.MapGet("/", context =>
     return Task.CompletedTask;
 });
 
-
 app.UseStatusCodePages(async context =>
 {
     var response = context.HttpContext.Response;
     response.ContentType = "application/json";
 
     if (response.StatusCode == StatusCodes.Status401Unauthorized)
-    {
         await response.WriteAsync("""{ "error": "unauthorized", "message": "Authentication token is missing or invalid." }""");
-    }
     else if (response.StatusCode == StatusCodes.Status403Forbidden)
-    {
         await response.WriteAsync("""{ "error": "forbidden", "message": "You are not authorized to access this resource." }""");
-    }
 });
 
 app.UseCustomExceptionHandler();
@@ -88,7 +87,6 @@ app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapHub<AccessConfirmationHub>("/accessconfirmationhub"); 
-
+app.MapHub<AccessConfirmationHub>("/accessconfirmationhub");
 
 app.Run();

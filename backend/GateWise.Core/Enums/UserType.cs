@@ -2,8 +2,8 @@ namespace GateWise.Core.Enums;
 
 public enum UserType
 {
-    Professor,
-    Student,
+    Manager,
+    Member,
     Admin,
-    Visitor
+    Guest
 }

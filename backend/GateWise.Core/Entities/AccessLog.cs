@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using GateWise.Core.Entities;
@@ -19,10 +18,10 @@ public class AccessLog
     public User User { get; set; } = default!;
 
     [Required]
-    public int LabId { get; set; }
+    public int SpaceId { get; set; }
 
-    [ForeignKey(nameof(LabId))]
-    public Lab Lab { get; set; } = default!;
+    [ForeignKey(nameof(SpaceId))]
+    public Space Space { get; set; } = default!;
 
     [Required]
     public DateTime IssuedAt { get; set; } = DateTime.UtcNow;

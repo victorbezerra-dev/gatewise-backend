@@ -10,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 using MQTTnet;
 using MQTTnet.Client;
 
-public class LabAccessService : ILabAccessService
+public class SpaceAccessService : ISpaceAccessService
 {
     private readonly IAccessLogRepository _accessLogRepository;
     private readonly IUserRepository _userRepository;
@@ -20,12 +20,12 @@ public class LabAccessService : ILabAccessService
     private readonly string _espPublicKey;
     private readonly IHubContext<AccessConfirmationHub> _hub;
 
-    public LabAccessService(
+    public SpaceAccessService(
         IAccessLogRepository accessLogRepository,
         IUserRepository userRepository,
         IMqttClient mqttClient,
         MqttClientOptions mqttOptions,
-        IConfiguration config, 
+        IConfiguration config,
         IHubContext<AccessConfirmationHub> hub)
     {
         _accessLogRepository = accessLogRepository;
@@ -34,18 +34,14 @@ public class LabAccessService : ILabAccessService
         _mqttOptions = mqttOptions;
         _hub = hub;
 
-
         var privateKeyPath = config["CryptoKeys:PrivateKeyPath"];
         var espPublicKeyPath = config["CryptoKeys:EspPublicKeyPath"];
 
         _privateKey = File.ReadAllText(privateKeyPath);
         _espPublicKey = File.ReadAllText(espPublicKeyPath);
-
-        Console.WriteLine($"[Startup] Private key loaded.");
-        Console.WriteLine($"[Startup] ESP public key path: {espPublicKeyPath}");
     }
 
-    public async Task<string> RequestLabAccessAsync(string userId, int labId, AccessLogCreateDto dto)
+    public async Task<string> RequestSpaceAccessAsync(string userId, int spaceId, AccessLogCreateDto dto)
     {
         var user = await _userRepository.GetByIdAsync(userId);
         var devicePublicKey = user?.DevicePublicKeyPem;
@@ -60,24 +56,7 @@ public class LabAccessService : ILabAccessService
 
         if (!_mqttClient.IsConnected)
         {
-            var tcpOptions = _mqttOptions.ChannelOptions as MQTTnet.Client.MqttClientTcpOptions;
-            var host = tcpOptions?.Server ?? "undefined";
-            var port = tcpOptions?.Port ?? 1883;
-
-            Console.WriteLine("[MQTT] Attempting to connect to the broker...");
-            Console.WriteLine($"[MQTT] Host: {host}");
-            Console.WriteLine($"[MQTT] Port: {port}");
-
-            try
-            {
-                await _mqttClient.ConnectAsync(_mqttOptions);
-                Console.WriteLine("[MQTT] Successfully connected to broker.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[MQTT] Failed to connect to broker: {ex.Message}");
-                throw;
-            }
+            await _mqttClient.ConnectAsync(_mqttOptions);
         }
 
         var commandId = Guid.NewGuid().ToString();
@@ -98,7 +77,7 @@ public class LabAccessService : ILabAccessService
         {
             CommandId = commandId,
             UserId = userId,
-            LabId = labId,
+            SpaceId = spaceId,
             RawRequestJson = payloadJson,
             Status = AccessStatus.PENDING_CONFIRMATION
         };
@@ -106,13 +85,13 @@ public class LabAccessService : ILabAccessService
         await _accessLogRepository.CreateAsync(log);
         await _accessLogRepository.SaveChangesAsync();
 
-        var messageMQQT = new MqttApplicationMessageBuilder()
+        var mqttMessage = new MqttApplicationMessageBuilder()
             .WithTopic("command/open-lock")
             .WithPayload(payloadJson)
             .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
             .Build();
 
-        await _mqttClient.PublishAsync(messageMQQT);
+        await _mqttClient.PublishAsync(mqttMessage);
         return payloadJson;
     }
 
@@ -121,10 +100,7 @@ public class LabAccessService : ILabAccessService
         var message = $"confirmed:{dto.CommandId}:{dto.Timestamp}";
         var isValid = VerifyWithPublicKey(message, dto.Signature, _espPublicKey);
         if (!isValid)
-        {
-            Console.WriteLine("[Security] Invalid signature in confirmation sent by ESP.");
             return false;
-        }
 
         var log = await _accessLogRepository.GetByCommandIdAsync(dto.CommandId);
         if (log == null) return false;
@@ -138,8 +114,6 @@ public class LabAccessService : ILabAccessService
             await _accessLogRepository.UpdateAsync(log);
             await _accessLogRepository.SaveChangesAsync();
 
-            Console.WriteLine($"[Access] ESP reported lock status 'OPENED' for user {log.UserId} (CommandId: {log.CommandId})");
-
             await _hub.Clients.All.SendAsync("access_result", new
             {
                 commandId = log.CommandId,
@@ -148,10 +122,8 @@ public class LabAccessService : ILabAccessService
 
             return true;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[Access] Failed to process lock status for CommandId={dto.CommandId}: {ex.Message}");
-
             log.Status = AccessStatus.NO_CONFIRMATION;
             log.ConfirmedAt = DateTime.UtcNow;
             log.RawConfirmationJson = JsonSerializer.Serialize(dto);

@@ -11,8 +11,8 @@ public class AccessGrantResponseDto
     public required string GrantedByUserId { get; set; }
     public string GrantedByUserName { get; set; } = string.Empty;
 
-    public int LabId { get; set; }
-    public string LabName { get; set; } = string.Empty;
+    public int SpaceId { get; set; }
+    public string SpaceName { get; set; } = string.Empty;
 
     public DateTime? GrantedAt { get; set; }
     public DateTime? RevokedAt { get; set; }

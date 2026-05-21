@@ -14,30 +14,28 @@ public class AccessGrantsController : ControllerBase
 {
     private readonly IAccessGrantRepository _accessGrantRepository;
     private readonly IUserRepository _userRepository;
-    private readonly ILabRepository _labRepository;
+    private readonly ISpaceRepository _spaceRepository;
 
     public AccessGrantsController(
         IAccessGrantRepository accessGrantRepository,
         IUserRepository userRepository,
-        ILabRepository labRepository)
+        ISpaceRepository spaceRepository)
     {
         _accessGrantRepository = accessGrantRepository;
         _userRepository = userRepository;
-        _labRepository = labRepository;
+        _spaceRepository = spaceRepository;
     }
 
     [HttpGet]
-    [Authorize(Roles = "admin,professor")]
+    [Authorize(Roles = "admin,manager")]
     public async Task<ActionResult<IEnumerable<AccessGrantResponseDto>>> GetAll([FromQuery] string? search)
     {
         var accessGrants = await _accessGrantRepository.GetAllAsync(search);
-        var result = accessGrants.Select(MapToDto);
-        return Ok(result);
+        return Ok(accessGrants.Select(MapToDto));
     }
 
-
     [HttpGet("{id}")]
-    [Authorize(Roles = "admin,professor")]
+    [Authorize(Roles = "admin,manager")]
     public async Task<ActionResult<AccessGrantResponseDto>> GetById(int id)
     {
         var accessGrant = await _accessGrantRepository.GetByIdAsync(id);
@@ -56,15 +54,15 @@ public class AccessGrantsController : ControllerBase
             return Forbid();
 
         var user = await _userRepository.GetByIdAsync(userId);
-        var lab = await _labRepository.GetByIdAsync(dto.LabId);
+        var space = await _spaceRepository.GetByIdAsync(dto.LabId);
 
-        if (user is null || lab is null)
-            return BadRequest("Invalid user or LabId.");
+        if (user is null || space is null)
+            return BadRequest("Invalid user or SpaceId.");
 
         var allAccessGrants = await _accessGrantRepository.GetAllAsync();
         var alreadyExists = allAccessGrants.Any(g =>
             g.AuthorizedUserId == userId &&
-            g.LabId == dto.LabId);
+            g.SpaceId == dto.LabId);
 
         if (alreadyExists)
             return Conflict("Access request already exists.");
@@ -72,7 +70,7 @@ public class AccessGrantsController : ControllerBase
         var newAccessGrant = new AccessGrant
         {
             AuthorizedUserId = userId,
-            LabId = dto.LabId,
+            SpaceId = dto.LabId,
             Reason = dto.Reason,
             Status = AccessGrantStatus.Pending,
             GrantedAt = DateTime.UtcNow
@@ -83,7 +81,7 @@ public class AccessGrantsController : ControllerBase
     }
 
     [HttpPut("{id}/review")]
-    [Authorize(Roles = "admin,professor")]
+    [Authorize(Roles = "admin,manager")]
     public async Task<ActionResult> ReviewAccessGrant(int id, [FromBody] ReviewAccessGrantDto dto)
     {
         var accessGrant = await _accessGrantRepository.GetByIdAsync(id);
@@ -93,9 +91,7 @@ public class AccessGrantsController : ControllerBase
         if (dto.Status == AccessGrantStatus.Pending)
             return BadRequest("Cannot revert to 'Pending' status.");
 
-        var grantedByUserIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        accessGrant.GrantedByUserId = grantedByUserIdStr;
+        accessGrant.GrantedByUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         accessGrant.Status = dto.Status;
         accessGrant.Reason = dto.Reason ?? accessGrant.Reason;
 
@@ -113,9 +109,8 @@ public class AccessGrantsController : ControllerBase
         return NoContent();
     }
 
-
     [HttpDelete("{id}")]
-    [Authorize(Roles = "admin,professor")]
+    [Authorize(Roles = "admin,manager")]
     public async Task<ActionResult> Delete(int id)
     {
         var accessGrant = await _accessGrantRepository.GetByIdAsync(id);
@@ -130,28 +125,20 @@ public class AccessGrantsController : ControllerBase
     [Authorize]
     public async Task<ActionResult<IEnumerable<AccessGrantResponseDto>>> GetByUserId(string userId)
     {
-        var matricula = User.FindFirst("preferred_username")?.Value;
-        if (string.IsNullOrWhiteSpace(matricula))
+        var callerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrWhiteSpace(callerId))
             return Forbid();
 
-        var currentUser = await _userRepository.GetByEmailOrRegistrationAsync("", matricula);
-        if (currentUser is null)
-            return Forbid();
-
-        var callerId = currentUser.Id;
         var isAdmin = User.IsInRole("admin");
-        var isProfessor = User.IsInRole("professor");
-
+        var isManager = User.IsInRole("manager");
         var isSelf = callerId == userId;
 
-        if (!isAdmin && !isSelf && !isProfessor)
+        if (!isAdmin && !isManager && !isSelf)
             return Forbid();
 
         var accessGrants = await _accessGrantRepository.GetByUserIdAsync(userId);
-
         return Ok(accessGrants.Select(MapToDto));
     }
-
 
     private static AccessGrantResponseDto MapToDto(AccessGrant accessGrant) => new()
     {
@@ -160,8 +147,8 @@ public class AccessGrantsController : ControllerBase
         AuthorizedUserName = accessGrant.AuthorizedUser.Name,
         GrantedByUserId = accessGrant.GrantedByUserId ?? "",
         GrantedByUserName = accessGrant.GrantedByUser?.Name ?? string.Empty,
-        LabId = accessGrant.LabId,
-        LabName = accessGrant.Lab.Name,
+        SpaceId = accessGrant.SpaceId,
+        SpaceName = accessGrant.Space.Name,
         GrantedAt = accessGrant.GrantedAt,
         RevokedAt = accessGrant.RevokedAt,
         Reason = accessGrant.Reason,

@@ -4,30 +4,29 @@ using GateWise.Core.Entities;
 
 public class AccessGrantConfiguration : IEntityTypeConfiguration<AccessGrant>
 {
-       public void Configure(EntityTypeBuilder<AccessGrant> builder)
-       {
-              builder.ToTable("access_grants");
+    public void Configure(EntityTypeBuilder<AccessGrant> builder)
+    {
+        builder.ToTable("access_grants");
 
-              builder.HasKey(a => a.Id);
+        builder.HasKey(a => a.Id);
 
-              builder.Property(a => a.Reason).HasMaxLength(255);
+        builder.Property(a => a.Reason).HasMaxLength(255);
 
-              builder.Property(a => a.Status)
-                     .HasConversion<string>()
-                     .IsRequired();
+        builder.Property(a => a.Status)
+               .HasConversion<string>()
+               .IsRequired();
 
-              builder.Property(a => a.AuthorizedUserId)
-                     .HasColumnType("varchar(36)")
-                     .IsRequired();
+        builder.Property(a => a.AuthorizedUserId)
+               .HasColumnType("varchar(36)")
+               .IsRequired();
 
-              builder.Property(a => a.GrantedByUserId)
-                     .HasColumnType("varchar(36)")
-                     .IsRequired(false);
+        builder.Property(a => a.GrantedByUserId)
+               .HasColumnType("varchar(36)")
+               .IsRequired(false);
 
-
-              builder.HasOne(a => a.Lab)
-                     .WithMany()
-                     .HasForeignKey(a => a.LabId)
-                     .OnDelete(DeleteBehavior.Cascade);
-       }
+        builder.HasOne(a => a.Space)
+               .WithMany()
+               .HasForeignKey(a => a.SpaceId)
+               .OnDelete(DeleteBehavior.Cascade);
+    }
 }

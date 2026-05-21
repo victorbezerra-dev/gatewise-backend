@@ -12,8 +12,8 @@ public class AccessGrant
     public string? GrantedByUserId { get; set; }
     public User? GrantedByUser { get; set; }
 
-    public int LabId { get; set; }
-    public Lab Lab { get; set; } = null!;
+    public int SpaceId { get; set; }
+    public Space Space { get; set; } = null!;
 
     public DateTime? GrantedAt { get; set; }
     public DateTime? RevokedAt { get; set; }

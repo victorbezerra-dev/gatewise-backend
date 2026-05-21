@@ -6,8 +6,8 @@ namespace GateWise.Infrastructure.Persistence;
 public class AppDbContext : DbContext
 {
     public DbSet<User> Users => Set<User>();
-    public DbSet<Lab> Labs => Set<Lab>();
-    public DbSet<LabAccessManager> LabAccessManagers => Set<LabAccessManager>();
+    public DbSet<Space> Spaces => Set<Space>();
+    public DbSet<SpaceManager> SpaceManagers => Set<SpaceManager>();
     public DbSet<AccessGrant> AccessGrants => Set<AccessGrant>();
     public DbSet<AccessLog> AccessLogs => Set<AccessLog>();
 
@@ -19,8 +19,5 @@ public class AppDbContext : DbContext
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    => optionsBuilder
-        .UseSnakeCaseNamingConvention();
-
-
+        => optionsBuilder.UseSnakeCaseNamingConvention();
 }

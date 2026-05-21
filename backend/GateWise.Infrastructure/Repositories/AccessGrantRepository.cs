@@ -19,7 +19,7 @@ public class AccessGrantRepository : IAccessGrantRepository
         var query = _context.AccessGrants
             .Include(g => g.AuthorizedUser)
             .Include(g => g.GrantedByUser)
-            .Include(g => g.Lab)
+            .Include(g => g.Space)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -41,7 +41,7 @@ public class AccessGrantRepository : IAccessGrantRepository
         return await _context.AccessGrants
             .Include(g => g.AuthorizedUser)
             .Include(g => g.GrantedByUser)
-            .Include(g => g.Lab)
+            .Include(g => g.Space)
             .FirstOrDefaultAsync(g => g.Id == id);
     }
 
@@ -50,7 +50,7 @@ public class AccessGrantRepository : IAccessGrantRepository
         return await _context.AccessGrants
             .Include(g => g.AuthorizedUser)
             .Include(g => g.GrantedByUser)
-            .Include(g => g.Lab)
+            .Include(g => g.Space)
             .Where(g => g.AuthorizedUserId == userId)
             .ToListAsync();
     }

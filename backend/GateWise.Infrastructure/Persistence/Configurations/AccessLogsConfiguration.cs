@@ -14,8 +14,7 @@ public class AccessLogConfiguration : IEntityTypeConfiguration<AccessLog>
                .HasConversion<string>()
                .IsRequired();
 
-        builder.Property(a => a.IssuedAt)
-               .IsRequired();
+        builder.Property(a => a.IssuedAt).IsRequired();
 
         builder.Property(a => a.CreatedAt)
                .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -25,22 +24,16 @@ public class AccessLogConfiguration : IEntityTypeConfiguration<AccessLog>
                .HasDefaultValueSql("CURRENT_TIMESTAMP")
                .ValueGeneratedOnAddOrUpdate();
 
-        builder.Property(a => a.RawRequestJson)
-               .IsRequired();
+        builder.Property(a => a.RawRequestJson).IsRequired();
+        builder.Property(a => a.CommandId).IsRequired();
+        builder.Property(a => a.SpaceId).IsRequired();
 
-        builder.Property(a => a.CommandId)
-               .IsRequired();
-
-        builder.Property(a => a.LabId)
-               .IsRequired();
-
-        builder.HasOne(a => a.Lab)
+        builder.HasOne(a => a.Space)
                .WithMany()
-               .HasForeignKey(a => a.LabId)
+               .HasForeignKey(a => a.SpaceId)
                .OnDelete(DeleteBehavior.Restrict);
 
-        builder.Property(a => a.UserId)
-               .IsRequired();
+        builder.Property(a => a.UserId).IsRequired();
 
         builder.HasOne(a => a.User)
                .WithMany()
