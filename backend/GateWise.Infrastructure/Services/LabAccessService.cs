@@ -48,7 +48,7 @@ public class LabAccessService : ILabAccessService
     public async Task<string> RequestLabAccessAsync(string userId, int labId, AccessLogCreateDto dto)
     {
         var user = await _userRepository.GetByIdAsync(userId);
-        var devicePublicKey = user?.DevicePublicKeyPem?.Replace("\\n", "\n");
+        var devicePublicKey = user?.DevicePublicKeyPem;
 
         if (string.IsNullOrWhiteSpace(devicePublicKey))
             throw new InvalidOperationException("Device public key not registered.");
