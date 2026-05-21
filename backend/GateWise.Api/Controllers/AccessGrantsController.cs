@@ -51,15 +51,19 @@ public class AccessGrantsController : ControllerBase
     [Authorize]
     public async Task<ActionResult> Create([FromBody] CreateAccessGrantDto dto)
     {
-        var user = await _userRepository.GetByIdAsync(dto.AuthorizedUserId);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrWhiteSpace(userId))
+            return Forbid();
+
+        var user = await _userRepository.GetByIdAsync(userId);
         var lab = await _labRepository.GetByIdAsync(dto.LabId);
 
         if (user is null || lab is null)
-            return BadRequest("Invalid AuthorizedUserId or LabId.");
+            return BadRequest("Invalid user or LabId.");
 
         var allAccessGrants = await _accessGrantRepository.GetAllAsync();
         var alreadyExists = allAccessGrants.Any(g =>
-            g.AuthorizedUserId == dto.AuthorizedUserId &&
+            g.AuthorizedUserId == userId &&
             g.LabId == dto.LabId);
 
         if (alreadyExists)
@@ -67,7 +71,7 @@ public class AccessGrantsController : ControllerBase
 
         var newAccessGrant = new AccessGrant
         {
-            AuthorizedUserId = dto.AuthorizedUserId,
+            AuthorizedUserId = userId,
             LabId = dto.LabId,
             Reason = dto.Reason,
             Status = AccessGrantStatus.Pending,
