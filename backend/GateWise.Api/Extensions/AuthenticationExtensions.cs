@@ -18,8 +18,8 @@ public static class AuthenticationExtensions
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
+                    ValidateIssuer = false,
                     ValidateAudience = false,
-                    ValidIssuer = "http://localhost:8080/realms/master"
                 };
 
                 options.Events = new JwtBearerEvents
