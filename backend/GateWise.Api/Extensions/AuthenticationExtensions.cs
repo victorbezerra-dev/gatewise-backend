@@ -7,18 +7,22 @@ namespace GateWise.Api.Extensions;
 
 public static class AuthenticationExtensions
 {
-    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services)
+    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
+        var authority = configuration["JwtBearer:Authority"]!;
+        var validIssuer = configuration["JwtBearer:ValidIssuer"] ?? authority;
+
         services.AddAuthentication("Bearer")
             .AddJwtBearer("Bearer", options =>
             {
-                options.Authority = "http://keycloak:8080/realms/master";
+                options.Authority = authority;
                 options.RequireHttpsMetadata = false;
                 options.UseSecurityTokenValidators = true;
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = false,
+                    ValidateIssuer = true,
+                    ValidIssuer = validIssuer,
                     ValidateAudience = false,
                 };
 

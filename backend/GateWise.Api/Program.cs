@@ -47,7 +47,7 @@ builder.Services.AddSingleton<IAuthorizationHandler, GatewiseClientHandler>();
 builder.Services.AddScoped<IClaimsTransformation, KeycloakClaimsTransformer>();
 builder.Services.AddControllers();
 builder.Services
-    .AddJwtAuthentication()
+    .AddJwtAuthentication(builder.Configuration)
     .AddCustomAuthorization()
     .AddCustomOpenApi();
 
