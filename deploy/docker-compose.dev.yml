@@ -2,35 +2,48 @@ services:
   keycloak:
     command: start-dev
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_DB_NAME: keycloak
-      KC_DB_USER: keycloak
-      KC_DB_PASSWORD: keycloak
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB_NAME: ${KC_DB_NAME}
+      KC_DB_USER: ${KC_DB_USER}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_HOSTNAME: ${KC_HOSTNAME}
+      KC_HOSTNAME_STRICT_HTTPS: "true"
+      KC_PROXY: xforwarded
+      KC_PROXY_ADDRESS_FORWARDING: "true"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_PORT: 8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../keycloak/themes:/opt/keycloak/themes
 
   gatewise-db:
     image: postgres:15
     ports:
-      - "5432:5432"  
+      - "5432:5432"
     environment:
-      POSTGRES_DB: gatewise
-      POSTGRES_USER: gatewise
-      POSTGRES_PASSWORD: gatewise
+      POSTGRES_DB: ${GATEWISE_DB_NAME}
+      POSTGRES_USER: ${GATEWISE_DB_USER}
+      POSTGRES_PASSWORD: ${GATEWISE_DB_PASSWORD}
     volumes:
       - ../backend/data/gatewise:/var/lib/postgresql/data
 
   backend:
     image: mcr.microsoft.com/dotnet/sdk:9.0
     working_dir: /app/GateWise.Api
-    command: dotnet watch run --urls=http://0.0.0.0:8081
+    command: dotnet watch run --urls=http://0.0.0.0:5353
     volumes:
       - ../backend/GateWise.Api:/app/GateWise.Api
       - ../backend/GateWise.Core:/app/GateWise.Core
       - ../backend/GateWise.Infrastructure:/app/GateWise.Infrastructure
+      - ../backend/GateWise.Api/Keys:/app/GateWise.Api/Keys
     ports:
-    - "8081:8081"
+      - "5353:5353"
     environment:
-      ConnectionStrings__DefaultConnection: "Host=gatewise-db;Database=gatewise;Username=gatewise;Password=gatewise"
+      ConnectionStrings__DefaultConnection: "Host=gatewise-db;Database=${GATEWISE_DB_NAME};Username=${GATEWISE_DB_USER};Password=${GATEWISE_DB_PASSWORD}"
+      JwtBearer__ValidIssuer: "${KC_HOSTNAME}/realms/master"
     depends_on:
     - gatewise-db
     - keycloak
@@ -41,8 +54,8 @@ services:
       - "5672:5672"     
       - "15672:15672"   
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
