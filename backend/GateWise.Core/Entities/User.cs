@@ -4,21 +4,21 @@ namespace GateWise.Core.Entities;
 
 public class User
 {
-    public string Id { get; set; }
+    public string Id { get; set; } = string.Empty;
 
-    public string Name { get; set; }
-    public string Email { get; set; }
-    public string RegistrationNumber { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string RegistrationNumber { get; set; } = string.Empty;
 
-    public string UserAvatarUrl { get; set; }
+    public string UserAvatarUrl { get; set; } = string.Empty;
     public UserType UserType { get; set; }
 
-    public string OperationalSystem { get; set; }
-    public string OperationalSystemVersion { get; set; }
-    public string DeviceModel { get; set; }
-    public string DeviceManufactureName { get; set; }
+    public string OperationalSystem { get; set; } = string.Empty;
+    public string OperationalSystemVersion { get; set; } = string.Empty;
+    public string DeviceModel { get; set; } = string.Empty;
+    public string DeviceManufactureName { get; set; } = string.Empty;
 
-    public string? DevicePublicKeyPem { get; set; } 
+    public string? DevicePublicKeyPem { get; set; }
 
     private User() { }
 
