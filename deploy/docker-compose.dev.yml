@@ -62,8 +62,15 @@ services:
   consumer:
     build:
       context: ../sync-user-events-message-queue
-    env_file:
-      - ../sync-user-events-message-queue/.env
+    environment:
+      RABBITMQ_URL: "amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672"
+      QUEUE_NAME: user.login.sync
+      DLQ_NAME: user.login.sync.dlq
+      PGHOST: gatewise-db
+      PGDATABASE: ${GATEWISE_DB_NAME}
+      PGUSER: ${GATEWISE_DB_USER}
+      PGPASSWORD: ${GATEWISE_DB_PASSWORD}
+      PGPORT: 5432
     depends_on:
       - rabbitmq
       - gatewise-db
@@ -71,8 +78,15 @@ services:
   outbox-worker:
     build:
       context: ../event-sync-outbox-worker
-    env_file:
-      - ../event-sync-outbox-worker/.env
+    environment:
+      RABBITMQ_URL: "amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672"
+      QUEUE_NAME: user.login.sync
+      DLQ_NAME: user.login.sync.dlq
+      PGHOST: gatewise-db
+      PGDATABASE: ${GATEWISE_DB_NAME}
+      PGUSER: ${GATEWISE_DB_USER}
+      PGPASSWORD: ${GATEWISE_DB_PASSWORD}
+      PGPORT: 5432
     depends_on:
       - gatewise-db
       - rabbitmq
