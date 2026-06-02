@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - keycloak
+    networks:
+      - internal
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2.5
+    command: start
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KC_DB_NAME}
+      KC_DB_USERNAME: ${KC_DB_USER}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_HOSTNAME: ${KC_HOSTNAME}
+      KC_PROXY: xforwarded
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT_HTTPS: "true"
+    depends_on:
+      - keycloak-db
+    networks:
+      - internal
+    expose:
+      - "8080"
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=gatewise-db;Database=${GATEWISE_DB_NAME};Username=${GATEWISE_DB_USER};Password=${GATEWISE_DB_PASSWORD}"
+      JwtBearer__ValidIssuer: "https://${KC_HOSTNAME}/realms/master"
+    depends_on:
+      - gatewise-db
+      - keycloak
+    networks:
+      - internal
+    expose:
+      - "5353"
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    networks:
+      - internal
+    expose:
+      - "5672"
+
+networks:
+  internal:
+    driver: bridge

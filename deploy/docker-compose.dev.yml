@@ -1,106 +1,57 @@
+version: "3.9"
+
 services:
   keycloak:
+    image: quay.io/keycloak/keycloak:26.2.5
     command: start-dev
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_DB_NAME: ${KC_DB_NAME}
-      KC_DB_USER: ${KC_DB_USER}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KC_DB_NAME}
+      KC_DB_USERNAME: ${KC_DB_USER}
       KC_DB_PASSWORD: ${KC_DB_PASSWORD}
-      KC_HOSTNAME: ${KC_HOSTNAME}
-      KC_HOSTNAME_STRICT_HTTPS: "true"
-      KC_PROXY: xforwarded
-      KC_PROXY_ADDRESS_FORWARDING: "true"
-      KC_HOSTNAME_STRICT: "false"
       KC_HTTP_ENABLED: "true"
-      KC_HTTP_PORT: 8080
+      KC_HOSTNAME_STRICT: "false"
     ports:
       - "8080:8080"
-    volumes:
-      - ../keycloak/themes:/opt/keycloak/themes
-
-  gatewise-db:
-    image: postgres:15
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: ${GATEWISE_DB_NAME}
-      POSTGRES_USER: ${GATEWISE_DB_USER}
-      POSTGRES_PASSWORD: ${GATEWISE_DB_PASSWORD}
-    volumes:
-      - ../backend/data/gatewise:/var/lib/postgresql/data
+    depends_on:
+      - keycloak-db
+    networks:
+      - internal
 
   backend:
     image: mcr.microsoft.com/dotnet/sdk:9.0
     working_dir: /app/GateWise.Api
     command: dotnet watch run --urls=http://0.0.0.0:5353
     volumes:
-      - ../backend/GateWise.Api:/app/GateWise.Api
-      - ../backend/GateWise.Core:/app/GateWise.Core
-      - ../backend/GateWise.Infrastructure:/app/GateWise.Infrastructure
-      - ../backend/GateWise.Api/Keys:/app/GateWise.Api/Keys
+      - ../backend:/app
     ports:
       - "5353:5353"
     environment:
       ConnectionStrings__DefaultConnection: "Host=gatewise-db;Database=${GATEWISE_DB_NAME};Username=${GATEWISE_DB_USER};Password=${GATEWISE_DB_PASSWORD}"
-      JwtBearer__ValidIssuer: "${KC_HOSTNAME}/realms/master"
+      JwtBearer__ValidIssuer: "http://localhost:8080/realms/master"
     depends_on:
-    - gatewise-db
-    - keycloak
-
-  rabbitmq:
-    image: rabbitmq:3.12-management
-    ports:
-      - "5672:5672"     
-      - "15672:15672"   
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - gatewise-db
+      - keycloak
+    networks:
+      - internal
 
   consumer:
     build:
       context: ../sync-user-events-message-queue
     environment:
       RABBITMQ_URL: "amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672"
-      QUEUE_NAME: user.login.sync
-      DLQ_NAME: user.login.sync.dlq
       PGHOST: gatewise-db
       PGDATABASE: ${GATEWISE_DB_NAME}
       PGUSER: ${GATEWISE_DB_USER}
       PGPASSWORD: ${GATEWISE_DB_PASSWORD}
-      PGPORT: 5432
     depends_on:
       - rabbitmq
       - gatewise-db
+    networks:
+      - internal
 
-  outbox-worker:
-    build:
-      context: ../event-sync-outbox-worker
-    environment:
-      RABBITMQ_URL: "amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672"
-      QUEUE_NAME: user.login.sync
-      DLQ_NAME: user.login.sync.dlq
-      PGHOST: gatewise-db
-      PGDATABASE: ${GATEWISE_DB_NAME}
-      PGUSER: ${GATEWISE_DB_USER}
-      PGPASSWORD: ${GATEWISE_DB_PASSWORD}
-      PGPORT: 5432
-    depends_on:
-      - gatewise-db
-      - rabbitmq
-
-  maven-builder:
-    image: maven:3.9.4-eclipse-temurin-17
-    working_dir: /app
-    volumes:
-      - ../spiprovider/university-idp:/app
-      - ../keycloak/providers:/output
-    command: >
-      bash -c "
-        mvn clean package &&
-        cp target/*.jar /output
-      "
-volumes:
-  rabbitmq_data:
+networks:
+  internal:
+    driver: bridge
