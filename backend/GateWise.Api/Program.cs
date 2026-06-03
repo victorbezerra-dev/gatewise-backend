@@ -88,5 +88,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<AccessConfirmationHub>("/accessconfirmationhub");
+app.MapFallback(context =>
+{
+    context.Response.Redirect("/swagger/index.html");
+    return Task.CompletedTask;
+});
 
 app.Run();
