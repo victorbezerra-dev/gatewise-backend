@@ -1,5 +1,7 @@
 # GateWise Backend
 
+Licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later). See [LICENSE](LICENSE).
+
 REST API for physical lab access control. Authenticates users via Keycloak, verifies RSA-signed requests from mobile devices, sends unlock commands to ESP32 devices over MQTT, and delivers real-time access results via WebSocket (SignalR).
 
 ## Architecture
@@ -190,3 +192,9 @@ deploy/
 ├── docker-compose.dev.yml    # Full dev stack
 └── .env.example              # Environment variable template
 ```
+
+## License
+
+GateWise Backend is free software licensed under the GNU Affero General Public License v3.0 or later (`AGPL-3.0-or-later`).
+
+If you modify this software and make it available for users to interact with over a network, you must provide access to the Corresponding Source of your modified version as required by the AGPLv3. See [LICENSE](LICENSE) for the full license text.
