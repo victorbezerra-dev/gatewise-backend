@@ -50,6 +50,9 @@ services:
       API_URL: ${API_URL}
       API_AUTH_KEY: ${API_AUTH_KEY}
 
+    volumes:
+      - ../keycloak/providers:/opt/keycloak/providers:ro
+
     depends_on:
       - keycloak-db
 
