@@ -37,7 +37,10 @@ services:
       - "5353:5353"
     environment:
       ConnectionStrings__DefaultConnection: "Host=gatewise-db;Database=${GATEWISE_DB_NAME};Username=${GATEWISE_DB_USER};Password=${GATEWISE_DB_PASSWORD}"
+      JwtBearer__Authority: "http://localhost:8080/realms/master"
       JwtBearer__ValidIssuer: "http://localhost:8080/realms/master"
+      JwtBearer__JwksUri: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
+      JwtBearer__RequireHttpsMetadata: "false"
     depends_on:
       - gatewise-db
       - keycloak

@@ -75,13 +75,17 @@ services:
       context: ../backend
       dockerfile: Dockerfile
 
+    image: gatewise-backend
     container_name: gatewise-backend
     restart: always
 
     environment:
       ConnectionStrings__DefaultConnection: "Host=gatewise-db;Database=${GATEWISE_DB_NAME};Username=${GATEWISE_DB_USER};Password=${GATEWISE_DB_PASSWORD}"
 
+      JwtBearer__Authority: "https://${KC_HOSTNAME}/realms/master"
       JwtBearer__ValidIssuer: "https://${KC_HOSTNAME}/realms/master"
+      JwtBearer__JwksUri: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
+      JwtBearer__RequireHttpsMetadata: "false"
 
     depends_on:
       - gatewise-db
@@ -92,7 +96,6 @@ services:
 
     networks:
       - internal
-
 
   rabbitmq:
     image: rabbitmq:3.12-management
