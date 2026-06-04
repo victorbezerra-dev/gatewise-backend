@@ -34,6 +34,18 @@ services:
     networks:
       - internal
 
+  maven-builder:
+    image: maven:3.9.4-eclipse-temurin-17
+    working_dir: /app
+    volumes:
+      - ../spiprovider/university-idp:/app
+      - ../keycloak/providers:/output
+    command: >
+      bash -c "
+        mvn clean package &&
+        cp target/*.jar /output
+      "
+
 volumes:
   kc_pgdata:
   gatewise_pgdata:
