@@ -11,6 +11,8 @@ services:
       KC_DB_PASSWORD: ${KC_DB_PASSWORD}
       KC_HTTP_ENABLED: "true"
       KC_HOSTNAME_STRICT: "false"
+      API_URL: ${API_URL}
+      API_AUTH_KEY: ${API_AUTH_KEY}
     ports:
       - "8080:8080"
     depends_on:

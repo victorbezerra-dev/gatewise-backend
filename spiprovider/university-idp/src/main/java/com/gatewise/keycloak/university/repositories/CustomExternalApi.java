@@ -18,17 +18,25 @@ import com.gatewise.keycloak.university.dto.AuthResponseDTO;
 
 public class CustomExternalApi {
 
-    public static final String API_URL = "<<API_URL>>";
-    public static final String API_AUTH_KEY = "<<API_AUTH_KEY>>";
+    public static final String API_URL = getRequiredEnv("API_URL");
+    public static final String API_AUTH_KEY = getRequiredEnv("API_AUTH_KEY");
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static String getRequiredEnv(String name) {
+        String value = System.getenv(name);
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalStateException("Environment variable " + name + " is required for CustomExternalApi.");
+        }
+        return value.trim();
+    }
 
     public AuthResponseDTO loginAndGetUserInfo(String username, String password) throws IOException {
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             System.out.println("[CustomExternalApi] HttpClient created.");
 
-            String endpoint = API_URL + "/auth/login";
+            String endpoint = API_URL;
             HttpPost httpPost = new HttpPost(endpoint);
             httpPost.setHeader(HttpHeaders.AUTHORIZATION, "key=" + API_AUTH_KEY);
 

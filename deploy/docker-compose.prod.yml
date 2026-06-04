@@ -47,6 +47,9 @@ services:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
 
+      API_URL: ${API_URL}
+      API_AUTH_KEY: ${API_AUTH_KEY}
+
     depends_on:
       - keycloak-db
 
