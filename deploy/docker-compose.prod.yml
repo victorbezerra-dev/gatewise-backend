@@ -70,6 +70,31 @@ services:
     restart: always
 
 
+  backend-migrations:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+
+    image: gatewise-backend
+    container_name: gatewise-backend-migrations
+    command: dotnet GateWise.Api.dll --migrate
+    restart: "no"
+
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=gatewise-db;Database=${GATEWISE_DB_NAME};Username=${GATEWISE_DB_USER};Password=${GATEWISE_DB_PASSWORD}"
+
+      JwtBearer__Authority: "https://${KC_HOSTNAME}/realms/master"
+      JwtBearer__ValidIssuer: "https://${KC_HOSTNAME}/realms/master"
+      JwtBearer__JwksUri: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
+      JwtBearer__RequireHttpsMetadata: "false"
+
+    depends_on:
+      - gatewise-db
+
+    networks:
+      - internal
+
+
   backend:
     build:
       context: ../backend
@@ -88,8 +113,10 @@ services:
       JwtBearer__RequireHttpsMetadata: "false"
 
     depends_on:
-      - gatewise-db
-      - keycloak
+      backend-migrations:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
 
     expose:
       - "5353"

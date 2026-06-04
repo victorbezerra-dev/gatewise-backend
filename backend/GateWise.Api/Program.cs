@@ -58,6 +58,18 @@ builder.Services
 
 var app = builder.Build();
 
+if (args.Contains("--migrate"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    app.Logger.LogInformation("Applying GateWise database migrations...");
+    await db.Database.MigrateAsync();
+    app.Logger.LogInformation("GateWise database migrations applied successfully.");
+
+    return;
+}
+
 app.MapOpenApi();
 app.UseSwaggerUI(c =>
 {
@@ -94,4 +106,4 @@ app.MapFallback(context =>
     return Task.CompletedTask;
 });
 
-app.Run();
+await app.RunAsync();
