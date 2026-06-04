@@ -17,8 +17,8 @@ public class AuthRequestDTO {
         this.usuario = usuario;
         this.senha = senha;
         this.tokenFirebase = "";
-        this.codigoVersao = 114;
-        this.nomeVersao = "1.6.9";
+        this.codigoVersao = 122;
+        this.nomeVersao = "1.7.3";
         this.nomeSistemaOperacional = "Android";
         this.versaoSistemaOperacional = "14";
         this.modeloDispositivo = "SM-A556E";
