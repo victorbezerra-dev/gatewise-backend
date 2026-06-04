@@ -3,6 +3,7 @@ package com.gatewise.keycloak.university;
 import java.util.Collections;
 import java.util.List;
 
+import org.jboss.logging.Logger;
 import org.keycloak.Config;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.authentication.AuthenticatorFactory;
@@ -13,10 +14,13 @@ import org.keycloak.provider.ProviderConfigProperty;
 
 public class CustomAuthenticationFactory implements AuthenticatorFactory {
 
+    private static final Logger LOG = Logger.getLogger(CustomAuthenticationFactory.class);
+
     private static final CustomAuthenticator SINGLETON = new CustomAuthenticator();
 
     @Override
     public Authenticator create(KeycloakSession keycloakSession) {
+        LOG.info("[GatewiseCustomAuthenticatorFactory] create() invoked. Returning custom authenticator singleton.");
         return SINGLETON;
     }
 
@@ -60,10 +64,12 @@ public class CustomAuthenticationFactory implements AuthenticatorFactory {
 
     @Override
     public void init(Config.Scope scope) {
+        LOG.info("[GatewiseCustomAuthenticatorFactory] init() invoked. Provider loaded by Keycloak.");
     }
 
     @Override
     public void postInit(KeycloakSessionFactory keycloakSessionFactory) {
+        LOG.info("[GatewiseCustomAuthenticatorFactory] postInit() invoked. Provider is ready.");
     }
 
     @Override

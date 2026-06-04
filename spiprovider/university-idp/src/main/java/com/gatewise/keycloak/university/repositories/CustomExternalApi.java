@@ -11,12 +11,15 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.jboss.logging.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gatewise.keycloak.university.dto.AuthRequestDTO;
 import com.gatewise.keycloak.university.dto.AuthResponseDTO;
 
 public class CustomExternalApi {
+
+    private static final Logger LOG = Logger.getLogger(CustomExternalApi.class);
 
     public static final String API_URL = getRequiredEnv("API_URL");
     public static final String API_AUTH_KEY = getRequiredEnv("API_AUTH_KEY");
@@ -34,45 +37,41 @@ public class CustomExternalApi {
     public AuthResponseDTO loginAndGetUserInfo(String username, String password) throws IOException {
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            System.out.println("[CustomExternalApi] HttpClient created.");
+            LOG.infof("[CustomExternalApi] HttpClient created. username=%s", username);
 
             String endpoint = API_URL;
             HttpPost httpPost = new HttpPost(endpoint);
             httpPost.setHeader(HttpHeaders.AUTHORIZATION, "key=" + API_AUTH_KEY);
 
-            System.out.println("[CustomExternalApi] Building JSON payload...");
+            LOG.infof("[CustomExternalApi] Building JSON payload. username=%s", username);
             String json = objectMapper.writeValueAsString(new AuthRequestDTO(username, password));
-            System.out.println("[CustomExternalApi] Serialized payload: " + json);
 
             httpPost.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
-            System.out.println("[CustomExternalApi] Sending request to " + endpoint);
+            LOG.infof("[CustomExternalApi] Sending request to external API. endpoint=%s username=%s", endpoint, username);
 
             try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
-                System.out.println("[CustomExternalApi] Response received from API.");
+                LOG.infof("[CustomExternalApi] Response received from API. username=%s", username);
                 int statusCode = response.getStatusLine().getStatusCode();
                 String responseJson = "";
                 if (response.getEntity() != null) {
                     responseJson = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
                 }
-                System.out.println("[CustomExternalApi] Status code received: " + statusCode);
-                System.out.println("[CustomExternalApi] Response body: " + responseJson);
+                LOG.infof("[CustomExternalApi] Status code received. status=%d username=%s responseBodyLength=%d", statusCode, username, responseJson.length());
 
                 if (statusCode == 200) {
                     AuthResponseDTO dto = objectMapper.readValue(responseJson, AuthResponseDTO.class);
-                    System.out.println("[CustomExternalApi] Authentication successful for user: " + username);
+                    LOG.infof("[CustomExternalApi] Authentication successful according to external API. username=%s authenticated=%s", username, dto.isAuthenticated());
                     return dto;
                 } else {
-                    System.out.println("[CustomExternalApi] Authentication failed. Status: " + statusCode);
+                    LOG.warnf("[CustomExternalApi] Authentication failed according to external API. status=%d username=%s", statusCode, username);
                     return null;
                 }
             } catch (Exception e) {
-                System.out.println("[CustomExternalApi] Error while executing HTTP request: " + e.getClass().getSimpleName() + " - " + e.getMessage());
-                e.printStackTrace(System.out);
+                LOG.errorf(e, "[CustomExternalApi] Error while executing HTTP request. username=%s", username);
                 throw e;
             }
         } catch (Exception e) {
-            System.out.println("[CustomExternalApi] General error in loginAndGetUserInfo: " + e.getClass().getSimpleName() + " - " + e.getMessage());
-            e.printStackTrace(System.out);
+            LOG.errorf(e, "[CustomExternalApi] General error in loginAndGetUserInfo. username=%s", username);
             throw e instanceof IOException ? (IOException) e : new IOException(e);
         }
     }
