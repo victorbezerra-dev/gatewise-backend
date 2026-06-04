@@ -49,6 +49,11 @@ services:
 
       API_URL: ${API_URL}
       API_AUTH_KEY: ${API_AUTH_KEY}
+      GATEWISE_DB_HOST: gatewise-db
+      GATEWISE_DB_PORT: "5432"
+      GATEWISE_DB_NAME: ${GATEWISE_DB_NAME}
+      GATEWISE_DB_USER: ${GATEWISE_DB_USER}
+      GATEWISE_DB_PASSWORD: ${GATEWISE_DB_PASSWORD}
 
     volumes:
       - ../keycloak/providers:/opt/keycloak/providers:ro
