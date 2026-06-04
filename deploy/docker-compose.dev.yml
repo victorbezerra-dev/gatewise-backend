@@ -18,6 +18,11 @@ services:
       GATEWISE_DB_NAME: ${GATEWISE_DB_NAME}
       GATEWISE_DB_USER: ${GATEWISE_DB_USER}
       GATEWISE_DB_PASSWORD: ${GATEWISE_DB_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_QUEUE: user.login.sync
     volumes:
       - ../keycloak/providers:/opt/keycloak/providers:ro
     ports:
@@ -52,10 +57,9 @@ services:
       context: ../sync-user-events-message-queue
     environment:
       RABBITMQ_URL: "amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672"
-      PGHOST: gatewise-db
-      PGDATABASE: ${GATEWISE_DB_NAME}
-      PGUSER: ${GATEWISE_DB_USER}
-      PGPASSWORD: ${GATEWISE_DB_PASSWORD}
+      DATABASE_URL: "postgres://${GATEWISE_DB_USER}:${GATEWISE_DB_PASSWORD}@gatewise-db:5432/${GATEWISE_DB_NAME}"
+      QUEUE_NAME: user.login.sync
+      DLQ_NAME: user.login.sync.dlq
     depends_on:
       - rabbitmq
       - gatewise-db
