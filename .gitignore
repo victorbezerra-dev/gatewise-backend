@@ -74,6 +74,10 @@ appsettings.Local.json
 
 backend/data
 node_modules
+**/node_modules/
+keycloak/keycloakify-theme/dist/
+keycloak/keycloakify-theme-build/
+keycloak/keycloakify-theme/public/keycloakify-dev-resources/
 
 .env
 **/certs/

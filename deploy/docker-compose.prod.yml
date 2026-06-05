@@ -27,7 +27,11 @@ services:
     image: quay.io/keycloak/keycloak:26.2.5
     container_name: gatewise-keycloak
 
-    command: start
+    entrypoint:
+      - /bin/bash
+      - /opt/keycloak/scripts/start-with-theme.sh
+    command:
+      - start
 
     environment:
       KC_DB: postgres
@@ -46,6 +50,8 @@ services:
 
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_LOGIN_THEME: ${KC_LOGIN_THEME:-gatewise}
+      KC_THEME_REALM: ${KC_THEME_REALM:-master}
 
       API_URL: ${API_URL}
       API_AUTH_KEY: ${API_AUTH_KEY}
@@ -62,6 +68,8 @@ services:
 
     volumes:
       - ../keycloak/providers:/opt/keycloak/providers:ro
+      - ../keycloak/themes:/opt/keycloak/themes:ro
+      - ../keycloak/scripts/start-with-theme.sh:/opt/keycloak/scripts/start-with-theme.sh:ro
 
     depends_on:
       - keycloak-db

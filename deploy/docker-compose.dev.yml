@@ -1,10 +1,19 @@
 services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.2.5
-    command: start-dev
+    entrypoint:
+      - /bin/bash
+      - /opt/keycloak/scripts/start-with-theme.sh
+    command:
+      - start-dev
+      - --spi-theme-cache-themes=false
+      - --spi-theme-cache-templates=false
+      - --spi-theme-static-max-age=-1
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_LOGIN_THEME: ${KC_LOGIN_THEME:-gatewise}
+      KC_THEME_REALM: ${KC_THEME_REALM:-master}
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KC_DB_NAME}
       KC_DB_USERNAME: ${KC_DB_USER}
@@ -25,6 +34,8 @@ services:
       RABBITMQ_QUEUE: user.login.sync
     volumes:
       - ../keycloak/providers:/opt/keycloak/providers:ro
+      - ../keycloak/themes:/opt/keycloak/themes:ro
+      - ../keycloak/scripts/start-with-theme.sh:/opt/keycloak/scripts/start-with-theme.sh:ro
     ports:
       - "8080:8080"
     depends_on:
