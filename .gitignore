@@ -72,6 +72,12 @@ secrets.json
 appsettings.Development.json
 appsettings.Local.json
 
+## PEM keys
+*.pem
+deploy/secrets/*
+!deploy/secrets/.gitkeep
+backend/GateWise.Api/Keys/
+
 backend/data
 node_modules
 **/node_modules/

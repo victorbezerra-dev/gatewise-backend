@@ -34,8 +34,17 @@ public class SpaceAccessService : ISpaceAccessService
         _mqttOptions = mqttOptions;
         _hub = hub;
 
-        var privateKeyPath = config["CryptoKeys:PrivateKeyPath"];
-        var espPublicKeyPath = config["CryptoKeys:EspPublicKeyPath"];
+        var privateKeyPath = config["CryptoKeys:PrivateKeyPath"]
+            ?? throw new InvalidOperationException("Missing configuration 'CryptoKeys:PrivateKeyPath'. Set the environment variable CryptoKeys__PrivateKeyPath.");
+
+        var espPublicKeyPath = config["CryptoKeys:EspPublicKeyPath"]
+            ?? throw new InvalidOperationException("Missing configuration 'CryptoKeys:EspPublicKeyPath'. Set the environment variable CryptoKeys__EspPublicKeyPath.");
+
+        if (!File.Exists(privateKeyPath))
+            throw new FileNotFoundException($"Private key not found at: {privateKeyPath}");
+
+        if (!File.Exists(espPublicKeyPath))
+            throw new FileNotFoundException($"ESP32 public key not found at: {espPublicKeyPath}");
 
         _privateKey = File.ReadAllText(privateKeyPath);
         _espPublicKey = File.ReadAllText(espPublicKeyPath);

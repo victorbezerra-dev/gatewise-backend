@@ -49,6 +49,7 @@ services:
     command: dotnet watch run --urls=http://0.0.0.0:5353
     volumes:
       - ../backend:/app
+      - ./secrets:/app/secrets:ro
     ports:
       - "5353:5353"
     environment:
@@ -57,6 +58,8 @@ services:
       JwtBearer__ValidIssuer: "http://localhost:8080/realms/master"
       JwtBearer__JwksUri: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
       JwtBearer__RequireHttpsMetadata: "false"
+      CryptoKeys__PrivateKeyPath: ${CRYPTO_KEYS_PRIVATE_KEY_PATH}
+      CryptoKeys__EspPublicKeyPath: ${CRYPTO_KEYS_ESP_PUBLIC_KEY_PATH}
     depends_on:
       - gatewise-db
       - keycloak
