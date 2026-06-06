@@ -101,6 +101,9 @@ services:
       JwtBearer__JwksUri: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
       JwtBearer__RequireHttpsMetadata: "false"
 
+      CryptoKeys__PrivateKeyPath: ${CRYPTO_KEYS_PRIVATE_KEY_PATH}
+      CryptoKeys__EspPublicKeyPath: ${CRYPTO_KEYS_ESP_PUBLIC_KEY_PATH}
+
     depends_on:
       - gatewise-db
 
