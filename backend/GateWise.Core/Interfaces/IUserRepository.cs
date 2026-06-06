@@ -7,6 +7,7 @@ public interface IUserRepository
 {
     Task<List<User>> GetAllAsync();
     Task<User?> GetByIdAsync(string id);
+    Task<User> UpsertFromClaimsAsync(string id, string name, string email);
     Task<User> CreateAsync(User user);
     Task UpdateAsync(string id, UserUpsertDto user);
     Task UpdatePublicKeyAsync(string id, string newPublicKeyPem);

@@ -15,6 +15,9 @@ Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
+builder.Services.AddScoped<IOrganizationMemberRepository, OrganizationMemberRepository>();
+builder.Services.AddScoped<IOrganizationInviteRepository, OrganizationInviteRepository>();
 builder.Services.AddScoped<ISpaceRepository, SpaceRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISpaceManagerRepository, SpaceManagerRepository>();

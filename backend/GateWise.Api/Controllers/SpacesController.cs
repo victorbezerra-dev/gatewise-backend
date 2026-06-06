@@ -2,6 +2,7 @@ using System.Security.Claims;
 using GateWise.Core.Dtos;
 using GateWise.Core.DTOs;
 using GateWise.Core.Entities;
+using GateWise.Core.Enums;
 using GateWise.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,35 +13,88 @@ public class SpacesController : ControllerBase
 {
     private readonly ISpaceRepository _spaceRepository;
     private readonly ISpaceAccessService _spaceAccessService;
+    private readonly IOrganizationMemberRepository _memberRepositorysitory;
 
-    public SpacesController(ISpaceRepository spaceRepository, ISpaceAccessService spaceAccessService, IAccessLogRepository accessLogRepository)
+    public SpacesController(
+        ISpaceRepository spaceRepository,
+        ISpaceAccessService spaceAccessService,
+        IOrganizationMemberRepository memberRepository)
     {
         _spaceRepository = spaceRepository;
         _spaceAccessService = spaceAccessService;
+        _memberRepositorysitory = memberRepository;
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var spaces = await _spaceRepository.GetAllAsync();
+        if (User.IsInRole("admin"))
+            return Ok(await _spaceRepository.GetAllAsync());
+
+        var userId = GetUserId();
+        var memberships = await _memberRepositorysitory.GetByUserIdAsync(userId);
+        var orgIds = memberships.Select(m => m.OrganizationId).ToHashSet();
+
+        if (orgIds.Count == 0)
+            return Ok(Array.Empty<Space>());
+
+        var spaces = new List<Space>();
+        foreach (var orgId in orgIds)
+            spaces.AddRange(await _spaceRepository.GetByOrganizationIdAsync(orgId));
+
         return Ok(spaces);
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
         var space = await _spaceRepository.GetByIdAsync(id);
-        return space is null ? NotFound() : Ok(space);
+        if (space is null) return NotFound();
+
+        if (!User.IsInRole("admin"))
+        {
+            var userId = GetUserId();
+            var member = await _memberRepositorysitory.GetAsync(space.OrganizationId, userId);
+            if (member is null) return Forbid();
+        }
+
+        return Ok(space);
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,manager")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] SpaceUpsertDto dto)
     {
+        int organizationId;
+
+        if (User.IsInRole("admin"))
+        {
+            if (dto.OrganizationId is null)
+                return BadRequest("OrganizationId is required for admin.");
+            organizationId = dto.OrganizationId.Value;
+        }
+        else
+        {
+            var userId = GetUserId();
+            var memberships = await _memberRepositorysitory.GetByUserIdAsync(userId);
+            var managerMembership = memberships.FirstOrDefault(m =>
+                m.Role == OrganizationMemberRole.Owner || m.Role == OrganizationMemberRole.Manager);
+
+            if (managerMembership is null)
+                return Forbid();
+
+            organizationId = dto.OrganizationId ?? managerMembership.OrganizationId;
+
+            var membership = await _memberRepositorysitory.GetAsync(organizationId, userId);
+            if (membership is null || (membership.Role != OrganizationMemberRole.Owner && membership.Role != OrganizationMemberRole.Manager))
+                return Forbid();
+        }
+
         var space = new Space
         {
+            OrganizationId = organizationId,
             Name = dto.Name,
             Code = dto.Code,
             ImageUrl = dto.ImageUrl,
@@ -78,39 +132,58 @@ public class SpacesController : ControllerBase
         return confirmed ? Ok() : StatusCode(403, "Access not confirmed by app");
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,manager")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] SpaceUpsertDto dto)
     {
-        var existing = await _spaceRepository.GetByIdAsync(id);
-        if (existing is null)
-            return NotFound();
+        var space = await _spaceRepository.GetByIdAsync(id);
+        if (space is null) return NotFound();
 
-        existing.Name = dto.Name;
-        existing.Code = dto.Code;
-        existing.ImageUrl = dto.ImageUrl;
-        existing.Description = dto.Description;
-        existing.Location = dto.Location;
-        existing.Floor = dto.Floor;
-        existing.Building = dto.Building;
-        existing.Capacity = dto.Capacity;
-        existing.IsActive = dto.IsActive;
-        existing.OpenTime = dto.OpenTime;
-        existing.CloseTime = dto.CloseTime;
-        existing.UpdatedAt = DateTime.UtcNow;
+        if (!User.IsInRole("admin"))
+        {
+            var userId = GetUserId();
+            var member = await _memberRepositorysitory.GetAsync(space.OrganizationId, userId);
+            if (member is null || (member.Role != OrganizationMemberRole.Owner && member.Role != OrganizationMemberRole.Manager))
+                return Forbid();
+        }
 
-        await _spaceRepository.UpdateAsync(existing);
+        space.Name = dto.Name;
+        space.Code = dto.Code;
+        space.ImageUrl = dto.ImageUrl;
+        space.Description = dto.Description;
+        space.Location = dto.Location;
+        space.Floor = dto.Floor;
+        space.Building = dto.Building;
+        space.Capacity = dto.Capacity;
+        space.IsActive = dto.IsActive;
+        space.OpenTime = dto.OpenTime;
+        space.CloseTime = dto.CloseTime;
+        space.UpdatedAt = DateTime.UtcNow;
+
+        await _spaceRepository.UpdateAsync(space);
         return NoContent();
     }
 
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,manager")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
         var space = await _spaceRepository.GetByIdAsync(id);
         if (space is null) return NotFound();
 
+        if (!User.IsInRole("admin"))
+        {
+            var userId = GetUserId();
+            var member = await _memberRepositorysitory.GetAsync(space.OrganizationId, userId);
+            if (member is null || (member.Role != OrganizationMemberRole.Owner && member.Role != OrganizationMemberRole.Manager))
+                return Forbid();
+        }
+
         await _spaceRepository.DeleteAsync(space);
         return NoContent();
     }
+
+    private string GetUserId() =>
+        User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? throw new UnauthorizedAccessException();
 }

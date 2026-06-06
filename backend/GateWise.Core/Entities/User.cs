@@ -20,6 +20,8 @@ public class User
 
     public string? DevicePublicKeyPem { get; set; }
 
+    public ICollection<OrganizationMember> OrganizationMemberships { get; set; } = [];
+
     private User() { }
 
     public User(

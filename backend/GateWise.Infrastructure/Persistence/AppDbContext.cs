@@ -5,6 +5,9 @@ namespace GateWise.Infrastructure.Persistence;
 
 public class AppDbContext : DbContext
 {
+    public DbSet<Organization> Organizations => Set<Organization>();
+    public DbSet<OrganizationMember> OrganizationMembers => Set<OrganizationMember>();
+    public DbSet<OrganizationInvite> OrganizationInvites => Set<OrganizationInvite>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Space> Spaces => Set<Space>();
     public DbSet<SpaceManager> SpaceManagers => Set<SpaceManager>();

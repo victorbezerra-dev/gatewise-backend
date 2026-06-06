@@ -14,10 +14,11 @@ public class SpaceRepository : ISpaceRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Space>> GetAllAsync()
-    {
-        return await _context.Spaces.ToListAsync();
-    }
+    public async Task<IEnumerable<Space>> GetAllAsync() =>
+        await _context.Spaces.ToListAsync();
+
+    public async Task<IEnumerable<Space>> GetByOrganizationIdAsync(int organizationId) =>
+        await _context.Spaces.Where(s => s.OrganizationId == organizationId).ToListAsync();
 
     public async Task<Space?> GetByIdAsync(int id)
     {

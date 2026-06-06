@@ -15,23 +15,40 @@ public class AccessGrantsController : ControllerBase
     private readonly IAccessGrantRepository _accessGrantRepository;
     private readonly IUserRepository _userRepository;
     private readonly ISpaceRepository _spaceRepository;
+    private readonly IOrganizationMemberRepository _memberRepository;
 
     public AccessGrantsController(
         IAccessGrantRepository accessGrantRepository,
         IUserRepository userRepository,
-        ISpaceRepository spaceRepository)
+        ISpaceRepository spaceRepository,
+        IOrganizationMemberRepository memberRepository)
     {
         _accessGrantRepository = accessGrantRepository;
         _userRepository = userRepository;
         _spaceRepository = spaceRepository;
+        _memberRepository = memberRepository;
     }
 
     [HttpGet]
     [Authorize(Roles = "admin,manager")]
     public async Task<ActionResult<IEnumerable<AccessGrantResponseDto>>> GetAll([FromQuery] string? search)
     {
-        var accessGrants = await _accessGrantRepository.GetAllAsync(search);
-        return Ok(accessGrants.Select(MapToDto));
+        if (User.IsInRole("admin"))
+        {
+            var all = await _accessGrantRepository.GetAllAsync(search);
+            return Ok(all.Select(MapToDto));
+        }
+
+        var userId = GetUserId();
+        var memberships = await _memberRepository.GetByUserIdAsync(userId);
+        var orgIds = memberships
+            .Where(m => m.Role == OrganizationMemberRole.Owner || m.Role == OrganizationMemberRole.Manager)
+            .Select(m => m.OrganizationId)
+            .ToHashSet();
+
+        var grants = await _accessGrantRepository.GetAllAsync(search);
+        var filtered = grants.Where(g => orgIds.Contains(g.Space.OrganizationId));
+        return Ok(filtered.Select(MapToDto));
     }
 
     [HttpGet("{id}")]
@@ -39,8 +56,15 @@ public class AccessGrantsController : ControllerBase
     public async Task<ActionResult<AccessGrantResponseDto>> GetById(int id)
     {
         var accessGrant = await _accessGrantRepository.GetByIdAsync(id);
-        if (accessGrant is null)
-            return NotFound();
+        if (accessGrant is null) return NotFound();
+
+        if (!User.IsInRole("admin"))
+        {
+            var userId = GetUserId();
+            var member = await _memberRepository.GetAsync(accessGrant.Space.OrganizationId, userId);
+            if (member is null || (member.Role != OrganizationMemberRole.Owner && member.Role != OrganizationMemberRole.Manager))
+                return Forbid();
+        }
 
         return Ok(MapToDto(accessGrant));
     }
@@ -49,9 +73,7 @@ public class AccessGrantsController : ControllerBase
     [Authorize]
     public async Task<ActionResult> Create([FromBody] CreateAccessGrantDto dto)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrWhiteSpace(userId))
-            return Forbid();
+        var userId = GetUserId();
 
         var user = await _userRepository.GetByIdAsync(userId);
         var space = await _spaceRepository.GetByIdAsync(dto.LabId);
@@ -59,10 +81,13 @@ public class AccessGrantsController : ControllerBase
         if (user is null || space is null)
             return BadRequest("Invalid user or SpaceId.");
 
+        var member = await _memberRepository.GetAsync(space.OrganizationId, userId);
+        if (member is null)
+            return Forbid();
+
         var allAccessGrants = await _accessGrantRepository.GetAllAsync();
         var alreadyExists = allAccessGrants.Any(g =>
-            g.AuthorizedUserId == userId &&
-            g.SpaceId == dto.LabId);
+            g.AuthorizedUserId == userId && g.SpaceId == dto.LabId);
 
         if (alreadyExists)
             return Conflict("Access request already exists.");
@@ -85,13 +110,20 @@ public class AccessGrantsController : ControllerBase
     public async Task<ActionResult> ReviewAccessGrant(int id, [FromBody] ReviewAccessGrantDto dto)
     {
         var accessGrant = await _accessGrantRepository.GetByIdAsync(id);
-        if (accessGrant is null)
-            return NotFound();
+        if (accessGrant is null) return NotFound();
+
+        if (!User.IsInRole("admin"))
+        {
+            var userId = GetUserId();
+            var member = await _memberRepository.GetAsync(accessGrant.Space.OrganizationId, userId);
+            if (member is null || (member.Role != OrganizationMemberRole.Owner && member.Role != OrganizationMemberRole.Manager))
+                return Forbid();
+        }
 
         if (dto.Status == AccessGrantStatus.Pending)
             return BadRequest("Cannot revert to 'Pending' status.");
 
-        accessGrant.GrantedByUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        accessGrant.GrantedByUserId = GetUserId();
         accessGrant.Status = dto.Status;
         accessGrant.Reason = dto.Reason ?? accessGrant.Reason;
 
@@ -114,8 +146,15 @@ public class AccessGrantsController : ControllerBase
     public async Task<ActionResult> Delete(int id)
     {
         var accessGrant = await _accessGrantRepository.GetByIdAsync(id);
-        if (accessGrant is null)
-            return NotFound();
+        if (accessGrant is null) return NotFound();
+
+        if (!User.IsInRole("admin"))
+        {
+            var userId = GetUserId();
+            var member = await _memberRepository.GetAsync(accessGrant.Space.OrganizationId, userId);
+            if (member is null || (member.Role != OrganizationMemberRole.Owner && member.Role != OrganizationMemberRole.Manager))
+                return Forbid();
+        }
 
         await _accessGrantRepository.DeleteAsync(accessGrant);
         return NoContent();
@@ -125,20 +164,19 @@ public class AccessGrantsController : ControllerBase
     [Authorize]
     public async Task<ActionResult<IEnumerable<AccessGrantResponseDto>>> GetByUserId(string userId)
     {
-        var callerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrWhiteSpace(callerId))
-            return Forbid();
-
-        var isAdmin = User.IsInRole("admin");
-        var isManager = User.IsInRole("manager");
+        var callerId = GetUserId();
         var isSelf = callerId == userId;
 
-        if (!isAdmin && !isManager && !isSelf)
+        if (!User.IsInRole("admin") && !User.IsInRole("manager") && !isSelf)
             return Forbid();
 
         var accessGrants = await _accessGrantRepository.GetByUserIdAsync(userId);
         return Ok(accessGrants.Select(MapToDto));
     }
+
+    private string GetUserId() =>
+        User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? throw new UnauthorizedAccessException();
 
     private static AccessGrantResponseDto MapToDto(AccessGrant accessGrant) => new()
     {

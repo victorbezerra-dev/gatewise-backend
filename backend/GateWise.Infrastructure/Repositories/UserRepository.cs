@@ -21,6 +21,27 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByIdAsync(string id) =>
         await _context.Users.FindAsync(id);
 
+    public async Task<User> UpsertFromClaimsAsync(string id, string name, string email)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user is not null)
+        {
+            user.Name = name;
+            user.Email = email;
+            await _context.SaveChangesAsync();
+            return user;
+        }
+
+        var newUser = new User(name, email, string.Empty, string.Empty,
+            GateWise.Core.Enums.UserType.Member, string.Empty, string.Empty, string.Empty, string.Empty)
+        {
+            Id = id
+        };
+        _context.Users.Add(newUser);
+        await _context.SaveChangesAsync();
+        return newUser;
+    }
+
     public async Task<User> CreateAsync(User user)
     {
         _context.Users.Add(user);

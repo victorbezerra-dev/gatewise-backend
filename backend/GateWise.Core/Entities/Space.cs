@@ -3,6 +3,8 @@ namespace GateWise.Core.Entities;
 public class Space
 {
     public int Id { get; set; }
+    public int OrganizationId { get; set; }
+    public Organization Organization { get; set; } = null!;
     public string Name { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string ImageUrl { get; set; } = string.Empty;

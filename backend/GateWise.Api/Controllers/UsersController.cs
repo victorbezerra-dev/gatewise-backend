@@ -12,13 +12,20 @@ namespace GateWise.Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserRepository _repository;
+    private readonly IOrganizationMemberRepository _memberRepository;
+    private readonly IOrganizationInviteRepository _inviteRepository;
 
-    public UsersController(IUserRepository repository)
+    public UsersController(
+        IUserRepository repository,
+        IOrganizationMemberRepository memberRepository,
+        IOrganizationInviteRepository inviteRepository)
     {
         _repository = repository;
+        _memberRepository = memberRepository;
+        _inviteRepository = inviteRepository;
     }
 
-    [Authorize()]
+    [Authorize]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<User>>> GetAll() =>
         Ok(await _repository.GetAllAsync());
@@ -30,17 +37,63 @@ public class UsersController : ControllerBase
         return user == null ? NotFound() : Ok(user);
     }
 
-    [Authorize()]
+    [Authorize]
     [HttpGet("me")]
-    public async Task<ActionResult<User>> GetMe()
+    public async Task<ActionResult<UserMeResponseDto>> GetMe()
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
 
-        var user = await _repository.GetByIdAsync(userId);
-        return user == null ? NotFound() : Ok(user);
+        var name = User.FindFirst("name")?.Value
+            ?? User.FindFirst("preferred_username")?.Value
+            ?? string.Empty;
+        var email = User.FindFirst(ClaimTypes.Email)?.Value
+            ?? User.FindFirst("email")?.Value
+            ?? string.Empty;
+
+        var user = await _repository.UpsertFromClaimsAsync(userId, name, email);
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            var pendingInvites = await _inviteRepository.GetPendingByEmailAsync(email);
+            foreach (var invite in pendingInvites)
+            {
+                var already = await _memberRepository.GetAsync(invite.OrganizationId, userId);
+                if (already is not null) continue;
+
+                await _memberRepository.AddAsync(new OrganizationMember
+                {
+                    OrganizationId = invite.OrganizationId,
+                    UserId = userId,
+                    Role = invite.Role,
+                    JoinedAt = DateTime.UtcNow
+                });
+
+                invite.Status = GateWise.Core.Enums.OrganizationInviteStatus.Accepted;
+                await _inviteRepository.UpdateAsync(invite);
+            }
+        }
+
+        var memberships = await _memberRepository.GetByUserIdAsync(userId);
+
+        return Ok(new UserMeResponseDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            RegistrationNumber = user.RegistrationNumber,
+            UserAvatarUrl = user.UserAvatarUrl,
+            UserType = user.UserType,
+            DevicePublicKeyPem = user.DevicePublicKeyPem,
+            Organizations = memberships.Select(m => new UserOrganizationDto
+            {
+                Id = m.OrganizationId,
+                Name = m.Organization.Name,
+                LogoUrl = m.Organization.LogoUrl,
+                Role = m.Role
+            }).ToList()
+        });
     }
 
     [Authorize]
@@ -55,8 +108,7 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
-
-    [Authorize()]
+    [Authorize]
     [HttpPatch("{id}")]
     public async Task<IActionResult> Update(string id, [FromBody] UserUpsertDto user)
     {
