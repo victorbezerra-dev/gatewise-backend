@@ -96,6 +96,29 @@ public class CustomAuthenticator extends UsernamePasswordForm implements Authent
             return;
         }
 
+        if (username.contains("@")) {
+            LOG.infof(
+                    "[GatewiseCustomAuthenticator] Email detected. Validating as external user with Keycloak local password. username=%s realm=%s",
+                    username,
+                    realm.getName()
+            );
+            if (user == null) {
+                LOG.warnf(
+                        "[GatewiseCustomAuthenticator] External user not found in Keycloak. username=%s realm=%s",
+                        username,
+                        realm.getName()
+                );
+                fail(context, AuthenticationFlowError.INVALID_USER, "Usuário não encontrado. Cadastre-se primeiro.");
+                return;
+            }
+            if (validatePassword(context, user, formData, false)) {
+                succeed(context, user);
+            } else {
+                fail(context, AuthenticationFlowError.INVALID_CREDENTIALS, "Senha inválida!");
+            }
+            return;
+        }
+
         AuthResponseDTO response = tryAuthenticateExternal(context, username, password);
         if (response == null || !response.isAuthenticated()) {
             LOG.warnf(

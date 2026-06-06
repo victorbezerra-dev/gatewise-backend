@@ -358,6 +358,19 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; margin: 0; }
 
 .gw-register { margin: 1.35rem 0 0; color: var(--gw-muted); text-align: center; }
 
+.gw-username-hint {
+  min-height: 1.2em;
+  margin-top: 0.42rem;
+  font-size: 0.83rem;
+  line-height: 1.4;
+  color: var(--gw-muted);
+  transition: color 160ms ease;
+}
+.gw-username-hint a { color: var(--gw-cyan); font-weight: 850; text-decoration: none; }
+.gw-username-hint a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.gw-username-hint-ifro { color: var(--gw-cyan); }
+.gw-username-hint-external { color: var(--gw-muted-strong); }
+
 @media (max-width: 1200px) {
   .gw-page { grid-template-columns: 1fr; }
   .gw-hero { display: none; min-height: auto; padding: 2rem 1rem 0; }

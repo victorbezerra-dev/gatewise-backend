@@ -150,9 +150,10 @@
                 </span>
                 <div class="gw-input">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z"/></svg>
-                  <input id="username" name="username" type="text" value="${(login.username!'')?html}" autocomplete="username" inputmode="email" autofocus placeholder="${msg("gatewiseUsernamePlaceholder")}" />
+                  <input id="username" name="username" type="text" value="${(login.username!'')?html}" autocomplete="username" inputmode="text" autofocus placeholder="${msg("gatewiseUsernamePlaceholder")}" />
                 </div>
               </label>
+              <div id="gw-username-hint" class="gw-username-hint" aria-live="polite" role="status"></div>
             </#if>
 
             <label class="gw-field" for="password">
@@ -192,11 +193,40 @@
             </button>
           </form>
 
-          <#if realm.password && realm.registrationAllowed && !registrationDisabled??>
-            <p class="gw-register">${msg("noAccount")} <a href="${url.registrationUrl}">${msg("doRegister")}</a></p>
-          </#if>
+          <p class="gw-register">${msg("noAccount")} <a href="${url.registrationUrl}">${msg("doRegister")}</a></p>
         </div>
       </section>
     </main>
+  <script>
+    (function () {
+      var input = document.getElementById('username');
+      var hint  = document.getElementById('gw-username-hint');
+      if (!input || !hint) return;
+
+      var registrationUrl = '${url.registrationUrl}';
+
+      function updateHint() {
+        var val = input.value.trim();
+        if (!val) { hint.innerHTML = ''; hint.className = 'gw-username-hint'; return; }
+
+        if (/^\d+$/.test(val)) {
+          hint.innerHTML = 'Aluno ou servidor do IFRO &mdash; use sua matr&iacute;cula e senha institucional.';
+          hint.className = 'gw-username-hint gw-username-hint-ifro';
+        } else if (val.indexOf('@') !== -1) {
+          var registerLink = registrationUrl
+            ? ' Sem conta? <a href="' + registrationUrl + '">${msg("doRegister")}</a>'
+            : '';
+          hint.innerHTML = 'Acesso para usu&aacute;rios externos.' + registerLink;
+          hint.className = 'gw-username-hint gw-username-hint-external';
+        } else {
+          hint.innerHTML = '';
+          hint.className = 'gw-username-hint';
+        }
+      }
+
+      input.addEventListener('input', updateHint);
+      updateHint();
+    })();
+  </script>
   </body>
 </html>
