@@ -1,3 +1,4 @@
+using GateWise.Core.Entities;
 using GateWise.Core.Enums;
 
 namespace GateWise.Core.DTOs;
@@ -12,6 +13,24 @@ public class UserMeResponseDto
     public UserType UserType { get; set; }
     public string? DevicePublicKeyPem { get; set; }
     public List<UserOrganizationDto> Organizations { get; set; } = [];
+
+    public static UserMeResponseDto From(User user, IEnumerable<OrganizationMember> memberships) => new()
+    {
+        Id = user.Id,
+        Name = user.Name,
+        Email = user.Email,
+        RegistrationNumber = user.RegistrationNumber,
+        UserAvatarUrl = user.UserAvatarUrl,
+        UserType = user.UserType,
+        DevicePublicKeyPem = user.DevicePublicKeyPem,
+        Organizations = memberships.Select(m => new UserOrganizationDto
+        {
+            Id = m.OrganizationId,
+            Name = m.Organization.Name,
+            LogoUrl = m.Organization.LogoUrl,
+            Role = m.Role
+        }).ToList()
+    };
 }
 
 public class UserOrganizationDto

@@ -27,28 +27,31 @@ public class SpacesController : ControllerBase
 
     [Authorize]
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<ActionResult<IEnumerable<SpaceResponseDto>>> GetAll()
     {
         if (User.IsInRole("admin"))
-            return Ok(await _spaceRepository.GetAllAsync());
+        {
+            var allSpaces = await _spaceRepository.GetAllAsync();
+            return Ok(allSpaces.Select(SpaceResponseDto.From));
+        }
 
         var userId = GetUserId();
         var memberships = await _memberRepositorysitory.GetByUserIdAsync(userId);
         var orgIds = memberships.Select(m => m.OrganizationId).ToHashSet();
 
         if (orgIds.Count == 0)
-            return Ok(Array.Empty<Space>());
+            return Ok(Array.Empty<SpaceResponseDto>());
 
         var spaces = new List<Space>();
         foreach (var orgId in orgIds)
             spaces.AddRange(await _spaceRepository.GetByOrganizationIdAsync(orgId));
 
-        return Ok(spaces);
+        return Ok(spaces.Select(SpaceResponseDto.From));
     }
 
     [Authorize]
     [HttpGet("{id}")]
-    public async Task<IActionResult> Get(int id)
+    public async Task<ActionResult<SpaceResponseDto>> Get(int id)
     {
         var space = await _spaceRepository.GetByIdAsync(id);
         if (space is null) return NotFound();
@@ -60,12 +63,12 @@ public class SpacesController : ControllerBase
             if (member is null) return Forbid();
         }
 
-        return Ok(space);
+        return Ok(SpaceResponseDto.From(space));
     }
 
     [Authorize(Roles = "admin,manager")]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] SpaceUpsertDto dto)
+    public async Task<ActionResult<SpaceResponseDto>> Create([FromBody] SpaceUpsertDto dto)
     {
         int organizationId;
 
@@ -111,7 +114,7 @@ public class SpacesController : ControllerBase
         };
 
         await _spaceRepository.AddAsync(space);
-        return CreatedAtAction(nameof(Get), new { id = space.Id }, space);
+        return CreatedAtAction(nameof(Get), new { id = space.Id }, SpaceResponseDto.From(space));
     }
 
     [HttpPost("{id}/open")]
@@ -186,4 +189,5 @@ public class SpacesController : ControllerBase
     private string GetUserId() =>
         User.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? throw new UnauthorizedAccessException();
+
 }

@@ -33,7 +33,7 @@ public class OrganizationsController : ControllerBase
     public async Task<ActionResult<IEnumerable<OrganizationResponseDto>>> GetAll()
     {
         var orgs = await _organizationRepository.GetAllAsync();
-        return Ok(orgs.Select(MapToDto));
+        return Ok(orgs.Select(OrganizationResponseDto.From));
     }
 
     [HttpGet("{id}")]
@@ -49,7 +49,7 @@ public class OrganizationsController : ControllerBase
             if (member is null) return Forbid();
         }
 
-        return Ok(MapToDto(org));
+        return Ok(OrganizationResponseDto.From(org));
     }
 
     [HttpPost]
@@ -80,7 +80,7 @@ public class OrganizationsController : ControllerBase
 
         await _memberRepositorysitory.AddAsync(membership);
 
-        return CreatedAtAction(nameof(GetById), new { id = org.Id }, MapToDto(org));
+        return CreatedAtAction(nameof(GetById), new { id = org.Id }, OrganizationResponseDto.From(org));
     }
 
     [HttpPut("{id}")]
@@ -138,15 +138,7 @@ public class OrganizationsController : ControllerBase
 
         await _inviteRepositorysitory.AddAsync(invite);
 
-        return Ok(new InviteResponseDto
-        {
-            Id = invite.Id,
-            Code = invite.Code,
-            Email = invite.Email,
-            Role = invite.Role,
-            Status = invite.Status,
-            ExpiresAt = invite.ExpiresAt
-        });
+        return Ok(InviteResponseDto.From(invite));
     }
 
     [HttpGet("{id}/invites")]
@@ -158,15 +150,7 @@ public class OrganizationsController : ControllerBase
             return Forbid();
 
         var invites = await _inviteRepositorysitory.GetByOrganizationIdAsync(id);
-        return Ok(invites.Select(i => new InviteResponseDto
-        {
-            Id = i.Id,
-            Code = i.Code,
-            Email = i.Email,
-            Role = i.Role,
-            Status = i.Status,
-            ExpiresAt = i.ExpiresAt
-        }));
+        return Ok(invites.Select(InviteResponseDto.From));
     }
 
     [HttpPost("join")]
@@ -195,7 +179,7 @@ public class OrganizationsController : ControllerBase
         invite.Status = OrganizationInviteStatus.Accepted;
         await _inviteRepositorysitory.UpdateAsync(invite);
 
-        return Ok(MapToDto(invite.Organization));
+        return Ok(OrganizationResponseDto.From(invite.Organization));
     }
 
     [HttpGet("{id}/members")]
@@ -255,15 +239,4 @@ public class OrganizationsController : ControllerBase
         User.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? throw new UnauthorizedAccessException();
 
-    private static OrganizationResponseDto MapToDto(Organization org) => new()
-    {
-        Id = org.Id,
-        Name = org.Name,
-        Description = org.Description,
-        LogoUrl = org.LogoUrl,
-        IsActive = org.IsActive,
-        IsInstitutional = org.IsInstitutional,
-        CreatedAt = org.CreatedAt,
-        UpdatedAt = org.UpdatedAt
-    };
 }

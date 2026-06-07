@@ -36,7 +36,7 @@ public class AccessGrantsController : ControllerBase
         if (User.IsInRole("admin"))
         {
             var all = await _accessGrantRepository.GetAllAsync(search);
-            return Ok(all.Select(MapToDto));
+            return Ok(all.Select(AccessGrantResponseDto.From));
         }
 
         var userId = GetUserId();
@@ -48,7 +48,7 @@ public class AccessGrantsController : ControllerBase
 
         var grants = await _accessGrantRepository.GetAllAsync(search);
         var filtered = grants.Where(g => orgIds.Contains(g.Space.OrganizationId));
-        return Ok(filtered.Select(MapToDto));
+        return Ok(filtered.Select(AccessGrantResponseDto.From));
     }
 
     [HttpGet("{id}")]
@@ -66,7 +66,7 @@ public class AccessGrantsController : ControllerBase
                 return Forbid();
         }
 
-        return Ok(MapToDto(accessGrant));
+        return Ok(AccessGrantResponseDto.From(accessGrant));
     }
 
     [HttpPost("request-access")]
@@ -102,7 +102,7 @@ public class AccessGrantsController : ControllerBase
         };
 
         await _accessGrantRepository.AddAsync(newAccessGrant);
-        return CreatedAtAction(nameof(GetById), new { id = newAccessGrant.Id }, MapToDto(newAccessGrant));
+        return CreatedAtAction(nameof(GetById), new { id = newAccessGrant.Id }, AccessGrantResponseDto.From(newAccessGrant));
     }
 
     [HttpPut("{id}/review")]
@@ -171,25 +171,11 @@ public class AccessGrantsController : ControllerBase
             return Forbid();
 
         var accessGrants = await _accessGrantRepository.GetByUserIdAsync(userId);
-        return Ok(accessGrants.Select(MapToDto));
+        return Ok(accessGrants.Select(AccessGrantResponseDto.From));
     }
 
     private string GetUserId() =>
         User.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? throw new UnauthorizedAccessException();
 
-    private static AccessGrantResponseDto MapToDto(AccessGrant accessGrant) => new()
-    {
-        Id = accessGrant.Id,
-        AuthorizedUserId = accessGrant.AuthorizedUserId,
-        AuthorizedUserName = accessGrant.AuthorizedUser.Name,
-        GrantedByUserId = accessGrant.GrantedByUserId ?? "",
-        GrantedByUserName = accessGrant.GrantedByUser?.Name ?? string.Empty,
-        SpaceId = accessGrant.SpaceId,
-        SpaceName = accessGrant.Space.Name,
-        GrantedAt = accessGrant.GrantedAt,
-        RevokedAt = accessGrant.RevokedAt,
-        Reason = accessGrant.Reason,
-        Status = accessGrant.Status
-    };
 }

@@ -1,3 +1,5 @@
+using GateWise.Core.Entities;
+
 namespace GateWise.Core.DTOs;
 
 public class OrganizationResponseDto
@@ -10,4 +12,16 @@ public class OrganizationResponseDto
     public bool IsInstitutional { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    public static OrganizationResponseDto From(Organization org) => new()
+    {
+        Id = org.Id,
+        Name = org.Name,
+        Description = org.Description,
+        LogoUrl = org.LogoUrl,
+        IsActive = org.IsActive,
+        IsInstitutional = org.IsInstitutional,
+        CreatedAt = org.CreatedAt,
+        UpdatedAt = org.UpdatedAt
+    };
 }

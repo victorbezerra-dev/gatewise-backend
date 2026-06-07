@@ -1,4 +1,5 @@
 using GateWise.Application.DTOs;
+using GateWise.Core.DTOs;
 using GateWise.Core.Entities;
 using GateWise.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -26,24 +27,24 @@ public class SpaceManagersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<SpaceManager>>> GetAll()
+    public async Task<ActionResult<IEnumerable<SpaceManagerResponseDto>>> GetAll()
     {
         var result = await _spaceManagerRepo.GetAllAsync();
-        return Ok(result);
+        return Ok(result.Select(SpaceManagerResponseDto.From));
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<SpaceManager>> GetById(int id)
+    public async Task<ActionResult<SpaceManagerResponseDto>> GetById(int id)
     {
         var manager = await _spaceManagerRepo.GetByIdAsync(id);
         if (manager is null)
             return NotFound();
 
-        return Ok(manager);
+        return Ok(SpaceManagerResponseDto.From(manager));
     }
 
     [HttpPost]
-    public async Task<ActionResult> Create([FromBody] CreateSpaceManagerDto input)
+    public async Task<ActionResult<SpaceManagerResponseDto>> Create([FromBody] CreateSpaceManagerDto input)
     {
         var space = await _spaceRepo.GetByIdAsync(input.SpaceId);
         var user = await _userRepo.GetByIdAsync(input.UserId);
@@ -58,7 +59,7 @@ public class SpaceManagersController : ControllerBase
         };
 
         await _spaceManagerRepo.AddAsync(newManager);
-        return CreatedAtAction(nameof(GetById), new { id = newManager.Id }, newManager);
+        return CreatedAtAction(nameof(GetById), new { id = newManager.Id }, SpaceManagerResponseDto.From(newManager));
     }
 
     [HttpDelete("{id}")]
@@ -71,4 +72,5 @@ public class SpaceManagersController : ControllerBase
         await _spaceManagerRepo.DeleteAsync(manager);
         return NoContent();
     }
+
 }

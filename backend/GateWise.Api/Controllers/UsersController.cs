@@ -27,14 +27,17 @@ public class UsersController : ControllerBase
 
     [Authorize]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<User>>> GetAll() =>
-        Ok(await _repository.GetAllAsync());
+    public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetAll()
+    {
+        var users = await _repository.GetAllAsync();
+        return Ok(users.Select(UserResponseDto.From));
+    }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<User>> GetById(string id)
+    public async Task<ActionResult<UserResponseDto>> GetById(string id)
     {
         var user = await _repository.GetByIdAsync(id);
-        return user == null ? NotFound() : Ok(user);
+        return user == null ? NotFound() : Ok(UserResponseDto.From(user));
     }
 
     [Authorize]
@@ -77,23 +80,7 @@ public class UsersController : ControllerBase
 
         var memberships = await _memberRepository.GetByUserIdAsync(userId);
 
-        return Ok(new UserMeResponseDto
-        {
-            Id = user.Id,
-            Name = user.Name,
-            Email = user.Email,
-            RegistrationNumber = user.RegistrationNumber,
-            UserAvatarUrl = user.UserAvatarUrl,
-            UserType = user.UserType,
-            DevicePublicKeyPem = user.DevicePublicKeyPem,
-            Organizations = memberships.Select(m => new UserOrganizationDto
-            {
-                Id = m.OrganizationId,
-                Name = m.Organization.Name,
-                LogoUrl = m.Organization.LogoUrl,
-                Role = m.Role
-            }).ToList()
-        });
+        return Ok(UserMeResponseDto.From(user, memberships));
     }
 
     [Authorize]
@@ -122,4 +109,5 @@ public class UsersController : ControllerBase
         await _repository.DeleteAsync(id);
         return NoContent();
     }
+
 }
