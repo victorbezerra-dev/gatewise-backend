@@ -139,6 +139,8 @@
             <#assign gwUsernameValue = ''>
           </#if>
 
+          <#assign gwClientId = (client.clientId)!''>
+
           <form id="kc-form-login" class="gw-form" action="${url.loginAction}" method="post" onsubmit="var b=document.getElementById('kc-login');if(b){b.disabled=true;b.classList.add('is-loading');var t=b.querySelector('.gw-submit-text');if(t){t.textContent='${msg("gatewiseSigningIn")}';}}">
             <#if usernameHidden?? && usernameHidden>
               <input type="hidden" id="username" name="username" value="${gwUsernameValue}" />
@@ -173,7 +175,14 @@
             </label>
 
             <div class="gw-options">
-              <span></span>
+              <#if realm.rememberMe && gwClientId != 'gatewise-app' && !(usernameHidden?? && usernameHidden)>
+                <label class="gw-check" for="rememberMe">
+                  <input id="rememberMe" name="rememberMe" type="checkbox" <#if login.rememberMe??>checked</#if> />
+                  <span>${msg("rememberMe")}</span>
+                </label>
+              <#else>
+                <span></span>
+              </#if>
 
               <#if realm.resetPasswordAllowed>
                 <a href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
