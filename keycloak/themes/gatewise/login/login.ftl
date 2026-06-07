@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${msg("loginTitle")}</title>
     <link rel="icon" href="${url.resourcesCommonPath}/img/favicon.ico" />
-    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260607-no-back-arrow-hover" />
+    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260607-forgot-below-remember" />
     <style>
       @media (max-width: 1200px) {
         .gw-page {
@@ -228,9 +228,6 @@
             <div class="gw-field">
               <div class="gw-field-header">
                 <label for="password">${msg("password")}</label>
-                <#if realm.resetPasswordAllowed>
-                  <a class="gw-forgot" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
-                </#if>
               </div>
               <div class="gw-input-wrap">
                 <input
@@ -260,6 +257,10 @@
                 <input id="rememberMe" name="rememberMe" type="checkbox" <#if login.rememberMe??>checked</#if> />
                 <span>${msg("rememberMe")}</span>
               </label>
+            </#if>
+
+            <#if realm.resetPasswordAllowed>
+              <a class="gw-forgot gw-forgot-below" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
             </#if>
 
             <div class="gw-form-footer">

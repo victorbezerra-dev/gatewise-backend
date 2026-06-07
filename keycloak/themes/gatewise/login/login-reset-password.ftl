@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${msg("gatewiseResetPasswordTitle")}</title>
     <link rel="icon" href="${url.resourcesCommonPath}/img/favicon.ico" />
-    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260607-no-back-arrow-hover" />
+    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260607-forgot-below-remember" />
     <link rel="stylesheet" href="${url.resourcesPath}/css/reset-password.css?v=20260607-reset-back-no-arrow-hover" />
   </head>
   <body class="gw-body">

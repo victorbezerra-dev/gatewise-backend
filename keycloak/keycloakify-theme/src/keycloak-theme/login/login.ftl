@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${msg("loginTitle")}</title>
     <link rel="icon" href="${url.resourcesCommonPath}/img/favicon.ico" />
-    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260607-no-back-arrow-hover" />
+    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260607-forgot-below-remember" />
     <style>
       @media (max-width: 1200px) {
         .gw-page { grid-template-columns: 1fr !important; }
