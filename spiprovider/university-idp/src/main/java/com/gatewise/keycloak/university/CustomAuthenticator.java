@@ -119,7 +119,21 @@ public class CustomAuthenticator extends UsernamePasswordForm implements Authent
             return;
         }
 
-        AuthResponseDTO response = tryAuthenticateExternal(context, username, password);
+        AuthResponseDTO response;
+        try {
+            response = authenticateExternal(context, username, password);
+        } catch (IOException e) {
+            LOG.errorf(
+                    e,
+                    "[GatewiseCustomAuthenticator] External authentication API call failed. username=%s realm=%s clientId=%s",
+                    username,
+                    getRealmName(context),
+                    getClientId(context)
+            );
+            fail(context, AuthenticationFlowError.INTERNAL_ERROR, "Erro interno ao validar usuário!");
+            return;
+        }
+
         if (response == null || !response.isAuthenticated()) {
             LOG.warnf(
                     "[GatewiseCustomAuthenticator] External authentication did not authenticate user. username=%s realm=%s clientId=%s responsePresent=%s authenticated=%s",
@@ -129,6 +143,7 @@ public class CustomAuthenticator extends UsernamePasswordForm implements Authent
                     response != null,
                     response != null && response.isAuthenticated()
             );
+            fail(context, AuthenticationFlowError.INVALID_CREDENTIALS, "Usuário ou senha inválidos!");
             return;
         }
 
@@ -187,26 +202,14 @@ public class CustomAuthenticator extends UsernamePasswordForm implements Authent
         context.success();
     }
 
-    private AuthResponseDTO tryAuthenticateExternal(AuthenticationFlowContext context, String username, String password) {
-        try {
-            LOG.infof(
-                    "[GatewiseCustomAuthenticator] Calling external authentication API. username=%s realm=%s clientId=%s",
-                    username,
-                    getRealmName(context),
-                    getClientId(context)
-            );
-            return new CustomExternalApi().loginAndGetUserInfo(username, password);
-        } catch (IOException e) {
-            LOG.errorf(
-                    e,
-                    "[GatewiseCustomAuthenticator] External authentication API call failed. username=%s realm=%s clientId=%s",
-                    username,
-                    getRealmName(context),
-                    getClientId(context)
-            );
-            fail(context, AuthenticationFlowError.INTERNAL_ERROR, "Erro interno ao validar usuário!");
-            return null;
-        }
+    private AuthResponseDTO authenticateExternal(AuthenticationFlowContext context, String username, String password) throws IOException {
+        LOG.infof(
+                "[GatewiseCustomAuthenticator] Calling external authentication API. username=%s realm=%s clientId=%s",
+                username,
+                getRealmName(context),
+                getClientId(context)
+        );
+        return new CustomExternalApi().loginAndGetUserInfo(username, password);
     }
 
     private UserModel createUser(AuthenticationFlowContext context, RealmModel realm, String username, AuthResponseDTO response) {

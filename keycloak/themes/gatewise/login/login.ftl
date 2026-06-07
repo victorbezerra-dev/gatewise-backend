@@ -174,7 +174,11 @@
             <p>${msg("gatewiseLoginSubtitle")}</p>
           </header>
 
-          <#if message?has_content && (message.type != 'warning' || !isAppInitiatedAction??)>
+          <#assign gwUsernameValue = (login.username!'')>
+          <#assign gwIsLoginError = message?has_content && (message.type == 'error' || message.type == 'danger')>
+          <#assign gwShouldShowMessage = message?has_content && (message.type != 'warning' || !isAppInitiatedAction??) && (!gwIsLoginError || gwUsernameValue?has_content)>
+
+          <#if gwShouldShowMessage>
             <div class="gw-alert gw-alert-${message.type}" role="alert">
               <span></span>
               <p>
@@ -187,7 +191,6 @@
             </div>
           </#if>
 
-          <#assign gwUsernameValue = (login.username!'')>
           <#if message?has_content && message.type == 'success'>
             <#assign gwUsernameValue = ''>
           </#if>

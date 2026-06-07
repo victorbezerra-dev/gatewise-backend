@@ -127,14 +127,23 @@
             <p>${msg("gatewiseLoginSubtitle")}</p>
           </header>
 
-          <#if message?has_content && (message.type != 'warning' || !isAppInitiatedAction??)>
+          <#assign gwUsernameValue = (login.username!'')>
+          <#assign gwIsLoginError = message?has_content && (message.type == 'error' || message.type == 'danger')>
+          <#assign gwShouldShowMessage = message?has_content && (message.type != 'warning' || !isAppInitiatedAction??) && (!gwIsLoginError || gwUsernameValue?has_content)>
+
+          <#if gwShouldShowMessage>
             <div class="gw-alert gw-alert-${message.type}" role="alert">
               <span></span>
-              <p>${kcSanitize(message.summary)?no_esc}</p>
+              <p>
+                <#if message.type == 'error' || message.type == 'danger'>
+                  ${kcSanitize(msg("invalidUserMessage"))?no_esc}
+                <#else>
+                  ${kcSanitize(message.summary)?no_esc}
+                </#if>
+              </p>
             </div>
           </#if>
 
-          <#assign gwUsernameValue = (login.username!'')>
           <#if message?has_content && message.type == 'success'>
             <#assign gwUsernameValue = ''>
           </#if>
