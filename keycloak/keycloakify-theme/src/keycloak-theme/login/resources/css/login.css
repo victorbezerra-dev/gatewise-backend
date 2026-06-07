@@ -368,7 +368,7 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; margin: 0; }
 }
 .gw-username-hint a { color: var(--gw-cyan); font-weight: 850; text-decoration: none; }
 .gw-username-hint a:hover { text-decoration: underline; text-underline-offset: 3px; }
-.gw-username-hint-ifro { color: var(--gw-cyan); }
+.gw-username-hint-registered { color: var(--gw-cyan); }
 .gw-username-hint-external { color: var(--gw-muted-strong); }
 
 @media (max-width: 1200px) {
@@ -451,6 +451,7 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; margin: 0; }
   .gw-input input { height: 56px; font-size: 16px; border-radius: 18px; }
   .gw-submit { height: 58px; border-radius: 18px; }
   .gw-options { align-items: flex-start; flex-direction: column; gap: 0.45rem; }
+  .gw-register { text-align: left; }
 }
 
 @media (max-width: 360px) {

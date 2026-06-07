@@ -514,8 +514,10 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; }
   .gw-field > input,
   .gw-input-wrap input { height: 52px; font-size: 16px; }
 
+  .gw-field-header { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
+  .gw-forgot { text-align: left; }
   .gw-form-footer { flex-direction: column; align-items: stretch; }
-  .gw-register-inline { text-align: center; }
+  .gw-register-inline { text-align: left; }
   .gw-submit { width: 100%; height: 50px; }
 }
 

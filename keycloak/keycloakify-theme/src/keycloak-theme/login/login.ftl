@@ -168,14 +168,7 @@
             </label>
 
             <div class="gw-options">
-              <#if realm.rememberMe && !usernameHidden??>
-                <label class="gw-check">
-                  <input id="rememberMe" name="rememberMe" type="checkbox" <#if login.rememberMe??>checked</#if> />
-                  <span>${msg("rememberMe")}</span>
-                </label>
-              <#else>
-                <span></span>
-              </#if>
+              <span></span>
 
               <#if realm.resetPasswordAllowed>
                 <a href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
@@ -210,8 +203,8 @@
         if (!val) { hint.innerHTML = ''; hint.className = 'gw-username-hint'; return; }
 
         if (/^\d+$/.test(val)) {
-          hint.innerHTML = 'Aluno ou servidor do IFRO &mdash; use sua matr&iacute;cula e senha institucional.';
-          hint.className = 'gw-username-hint gw-username-hint-ifro';
+          hint.innerHTML = 'Acesso para usu&aacute;rios cadastrados.';
+          hint.className = 'gw-username-hint gw-username-hint-registered';
         } else if (val.indexOf('@') !== -1) {
           var registerLink = registrationUrl
             ? ' Sem conta? <a href="' + registrationUrl + '">${msg("doRegister")}</a>'

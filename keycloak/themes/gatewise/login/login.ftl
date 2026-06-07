@@ -202,7 +202,7 @@
                   type="text"
                   value="${(login.username!'')}"
                   autocomplete="username"
-                  inputmode="email"
+                  inputmode="text"
                   autofocus
                   placeholder="${msg("gatewiseUsernamePlaceholder")}"
                 />
@@ -235,15 +235,15 @@
               </div>
             </div>
 
-            <#if realm.rememberMe && !usernameHidden??>
+            <#if auth.selectedCredential?has_content>
+              <input type="hidden" name="credentialId" value="${auth.selectedCredential}" />
+            </#if>
+
+            <#if realm.rememberMe && !usernameHidden?? && !(client?? && client.clientId == "gatewise-app")>
               <label class="gw-check">
                 <input id="rememberMe" name="rememberMe" type="checkbox" <#if login.rememberMe??>checked</#if> />
                 <span>${msg("rememberMe")}</span>
               </label>
-            </#if>
-
-            <#if auth.selectedCredential?has_content>
-              <input type="hidden" name="credentialId" value="${auth.selectedCredential}" />
             </#if>
 
             <div class="gw-form-footer">
