@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${msg("loginTitle")}</title>
     <link rel="icon" href="${url.resourcesCommonPath}/img/favicon.ico" />
-    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260605-login-loading" />
+    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260606-logo-position" />
     <style>
       @media (max-width: 1200px) {
         .gw-page {
@@ -237,13 +237,6 @@
 
             <#if auth.selectedCredential?has_content>
               <input type="hidden" name="credentialId" value="${auth.selectedCredential}" />
-            </#if>
-
-            <#if realm.rememberMe && !usernameHidden?? && !(client?? && client.clientId == "gatewise-app")>
-              <label class="gw-check">
-                <input id="rememberMe" name="rememberMe" type="checkbox" <#if login.rememberMe??>checked</#if> />
-                <span>${msg("rememberMe")}</span>
-              </label>
             </#if>
 
             <div class="gw-form-footer">

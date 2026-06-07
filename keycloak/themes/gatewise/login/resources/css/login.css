@@ -123,7 +123,7 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; }
     left: clamp(0.5rem, 1vw, 1rem);
     width: var(--gw-hero-logo-width) !important;
     margin: 0 !important;
-    transform: translate(-13.3%, -29.8%);
+    transform: translate(6%, 20%) !important;
   }
 }
 .gw-kicker {

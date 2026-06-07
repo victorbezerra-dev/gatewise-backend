@@ -1,0 +1,19 @@
+.gw-register-card {
+  width: min(100%, 520px);
+}
+
+.gw-register-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.gw-register-card .gw-input input {
+  padding-left: 1rem;
+}
+
+@media (max-width: 520px) {
+  .gw-register-grid {
+    grid-template-columns: 1fr;
+  }
+}
