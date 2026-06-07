@@ -70,12 +70,12 @@
             <div class="gw-register-grid">
               <div class="gw-field">
                 <label for="firstName">${msg("firstName")}</label>
-                <input id="firstName" name="firstName" type="text" value="${((register.formData.firstName)!'')}" autocomplete="given-name" />
+                <input id="firstName" name="firstName" type="text" value="${((register.formData.firstName)!'')}" autocomplete="given-name" placeholder="${msg("gatewiseFirstNamePlaceholder")}" />
               </div>
 
               <div class="gw-field">
                 <label for="lastName">${msg("lastName")}</label>
-                <input id="lastName" name="lastName" type="text" value="${((register.formData.lastName)!'')}" autocomplete="family-name" />
+                <input id="lastName" name="lastName" type="text" value="${((register.formData.lastName)!'')}" autocomplete="family-name" placeholder="${msg("gatewiseLastNamePlaceholder")}" />
               </div>
             </div>
 

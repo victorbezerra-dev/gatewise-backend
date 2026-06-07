@@ -74,14 +74,14 @@
             <label class="gw-field" for="firstName">
               <span>${msg("firstName")}</span>
               <div class="gw-input">
-                <input id="firstName" name="firstName" type="text" value="${((register.formData.firstName)!'')}" autocomplete="given-name" />
+                <input id="firstName" name="firstName" type="text" value="${((register.formData.firstName)!'')}" autocomplete="given-name" placeholder="${msg("gatewiseFirstNamePlaceholder")}" />
               </div>
             </label>
 
             <label class="gw-field" for="lastName">
               <span>${msg("lastName")}</span>
               <div class="gw-input">
-                <input id="lastName" name="lastName" type="text" value="${((register.formData.lastName)!'')}" autocomplete="family-name" />
+                <input id="lastName" name="lastName" type="text" value="${((register.formData.lastName)!'')}" autocomplete="family-name" placeholder="${msg("gatewiseLastNamePlaceholder")}" />
               </div>
             </label>
 
