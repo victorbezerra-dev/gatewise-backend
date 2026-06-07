@@ -66,7 +66,7 @@
             </div>
           </#if>
 
-          <form id="kc-register-form" class="gw-form" action="${url.registrationAction}" method="post">
+          <form id="kc-register-form" class="gw-form" action="${url.registrationAction}" method="post" onsubmit="var f=this,b=document.getElementById('kc-register-submit');if(f.dataset.submitting==='true'){return true;}f.dataset.submitting='true';if(b){b.disabled=true;b.classList.add('is-loading');var t=b.querySelector('.gw-submit-text');if(t){t.textContent='${msg("gatewiseRegistering")}';}}setTimeout(function(){f.submit();},700);return false;">
             <div class="gw-register-grid">
               <div class="gw-field">
                 <label for="firstName">${msg("firstName")}</label>
@@ -121,7 +121,8 @@
               <p class="gw-register-inline">
                 ${msg("alreadyAccount")} <a href="${url.loginUrl}">${msg("doLogIn")}</a>
               </p>
-              <button class="gw-submit" type="submit">
+              <button class="gw-submit" id="kc-register-submit" type="submit">
+                <span class="gw-submit-spinner" aria-hidden="true"></span>
                 <span class="gw-submit-text">${msg("doRegister")}</span>
               </button>
             </div>
