@@ -177,14 +177,25 @@
           <#if message?has_content && (message.type != 'warning' || !isAppInitiatedAction??)>
             <div class="gw-alert gw-alert-${message.type}" role="alert">
               <span></span>
-              <p>${kcSanitize(msg("invalidUserMessage"))?no_esc}</p>
+              <p>
+                <#if message.type == 'error' || message.type == 'danger'>
+                  ${kcSanitize(msg("invalidUserMessage"))?no_esc}
+                <#else>
+                  ${kcSanitize(message.summary)?no_esc}
+                </#if>
+              </p>
             </div>
+          </#if>
+
+          <#assign gwUsernameValue = (login.username!'')>
+          <#if message?has_content && message.type == 'success'>
+            <#assign gwUsernameValue = ''>
           </#if>
 
           <form id="kc-form-login" class="gw-form" action="${url.loginAction}" method="post" onsubmit="var b=document.getElementById('kc-login');if(b){b.disabled=true;b.classList.add('is-loading');var t=b.querySelector('.gw-submit-text');if(t){t.textContent='${msg("gatewiseSigningIn")}';}}">
 
             <#if usernameHidden?? && usernameHidden>
-              <input type="hidden" id="username" name="username" value="${(login.username!'')}" />
+              <input type="hidden" id="username" name="username" value="${gwUsernameValue}" />
             <#else>
               <div class="gw-field">
                 <label for="username">
@@ -200,7 +211,7 @@
                   id="username"
                   name="username"
                   type="text"
-                  value="${(login.username!'')}"
+                  value="${gwUsernameValue}"
                   autocomplete="username"
                   inputmode="text"
                   autofocus

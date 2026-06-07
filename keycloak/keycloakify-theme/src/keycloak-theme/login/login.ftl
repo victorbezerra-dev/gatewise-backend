@@ -134,9 +134,14 @@
             </div>
           </#if>
 
+          <#assign gwUsernameValue = (login.username!'')>
+          <#if message?has_content && message.type == 'success'>
+            <#assign gwUsernameValue = ''>
+          </#if>
+
           <form id="kc-form-login" class="gw-form" action="${url.loginAction}" method="post" onsubmit="var b=document.getElementById('kc-login');if(b){b.disabled=true;b.classList.add('is-loading');var t=b.querySelector('.gw-submit-text');if(t){t.textContent='${msg("gatewiseSigningIn")}';}}">
             <#if usernameHidden?? && usernameHidden>
-              <input type="hidden" id="username" name="username" value="${(login.username!'')?html}" />
+              <input type="hidden" id="username" name="username" value="${gwUsernameValue}" />
             <#else>
               <label class="gw-field" for="username">
                 <span>
@@ -150,7 +155,7 @@
                 </span>
                 <div class="gw-input">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z"/></svg>
-                  <input id="username" name="username" type="text" value="${(login.username!'')?html}" autocomplete="username" inputmode="text" autofocus placeholder="${msg("gatewiseUsernamePlaceholder")}" />
+                  <input id="username" name="username" type="text" value="${gwUsernameValue}" autocomplete="username" inputmode="text" autofocus placeholder="${msg("gatewiseUsernamePlaceholder")}" />
                 </div>
               </label>
               <div id="gw-username-hint" class="gw-username-hint" aria-live="polite" role="status"></div>
