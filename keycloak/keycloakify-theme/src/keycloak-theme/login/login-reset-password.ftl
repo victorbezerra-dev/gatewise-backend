@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${msg("gatewiseResetPasswordTitle")}</title>
     <link rel="icon" href="${url.resourcesCommonPath}/img/favicon.ico" />
-    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260606-reset-password" />
-    <link rel="stylesheet" href="${url.resourcesPath}/css/reset-password.css?v=20260606-reset-password" />
+    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260607-no-back-arrow-hover" />
+    <link rel="stylesheet" href="${url.resourcesPath}/css/reset-password.css?v=20260607-reset-back-no-arrow-hover" />
   </head>
   <body class="gw-body">
     <main class="gw-page">
@@ -48,7 +48,12 @@
           </div>
         </div>
 
-        <div class="gw-card gw-reset-card">
+        <div class="gw-card-wrapper gw-reset-wrapper">
+          <a class="gw-back-button" href="${url.loginUrl}" aria-label="${msg("gatewiseBackToLogin")}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.8 19.2 3.6 12l7.2-7.2 1.4 1.4L7.4 11H20v2H7.4l4.8 4.8-1.4 1.4Z"/></svg>
+          </a>
+
+          <div class="gw-card gw-reset-card">
           <div class="gw-card-topline"></div>
 
           <header class="gw-heading">
@@ -89,8 +94,7 @@
               <svg class="gw-submit-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5 11.6 6.4 16.2 11H4v2h12.2l-4.6 4.6L13 19l7-7Z"/></svg>
             </button>
           </form>
-
-          <p class="gw-register"><a href="${url.loginUrl}">${msg("gatewiseBackToLogin")}</a></p>
+          </div>
         </div>
       </section>
     </main>

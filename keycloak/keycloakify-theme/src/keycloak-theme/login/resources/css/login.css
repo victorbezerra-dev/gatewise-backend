@@ -12,14 +12,20 @@
   --gw-danger: #ff8a8a;
   --gw-border: rgba(255, 255, 255, 0.14);
   --gw-border-focus: rgba(87, 245, 214, 0.7);
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
-html, body, .gatewise-login-shell, .gw-body { min-height: 100%; margin: 0; }
+html, body, .gatewise-login-shell, .gw-body {
+  min-height: 100%;
+  margin: 0;
+  -webkit-tap-highlight-color: transparent;
+}
 
 .gw-body {
   min-height: 100vh;
   color: var(--gw-text);
+  color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: var(--gw-bg);
   overflow-x: hidden;
@@ -218,8 +224,51 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; margin: 0; }
 }
 
 .gw-heading { margin-bottom: 1.7rem; }
-.gw-heading h2 { font-size: clamp(2rem, 5vw, 3.15rem); letter-spacing: -0.065em; }
+.gw-heading h2 { font-size: clamp(2rem, 5vw, 3.15rem); letter-spacing: -0.065em; margin-top: 15px; }
 .gw-heading p { color: var(--gw-muted); font-size: 1rem; }
+
+.gw-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: min(100%, 480px);
+}
+
+.gw-card-wrapper > .gw-card {
+  width: 100%;
+}
+
+.gw-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  align-self: flex-start;
+  padding: 0.58rem 0.9rem 0.58rem 0.72rem;
+  color: var(--gw-muted-strong);
+  background: rgba(255,255,255,0.055);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.gw-back-button svg {
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
+  transition: transform 150ms ease;
+}
+
+.gw-back-button:hover,
+.gw-back-button:focus-visible {
+  color: var(--gw-cyan);
+  border-color: rgba(87,245,214,0.3);
+  background: rgba(87,245,214,0.07);
+  outline: none;
+}
 
 .gw-alert {
   display: flex;
@@ -263,24 +312,69 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; margin: 0; }
   height: 60px;
   padding: 0 3.4rem 0 3.15rem;
   color: var(--gw-text);
+  color-scheme: dark;
+  -webkit-text-fill-color: var(--gw-text);
+  -webkit-appearance: none;
+  appearance: none;
   font-size: 1rem;
   font-weight: 650;
   caret-color: var(--gw-cyan);
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 20px;
   outline: none;
-  background: rgba(3, 12, 23, 0.74);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 18px 36px rgba(0,0,0,0.18);
-  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease, transform 180ms ease;
+  background-color: #030c17 !important;
+  background-image: none !important;
+  background-clip: padding-box;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  transform: translateZ(0);
+  will-change: border-color, box-shadow;
+  -webkit-box-shadow: 0 0 0 1000px #030c17 inset, 0 1px 0 rgba(255,255,255,0.05) inset, 0 18px 36px rgba(0,0,0,0.18) !important;
+  box-shadow: 0 0 0 1000px #030c17 inset, 0 1px 0 rgba(255,255,255,0.05) inset, 0 18px 36px rgba(0,0,0,0.18) !important;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .gw-input input::placeholder { color: rgba(153,171,196,0.58); font-weight: 550; }
-.gw-input input:hover { border-color: rgba(255,255,255,0.25); background: rgba(5,18,34,0.86); }
+.gw-input input:hover {
+  border-color: rgba(255,255,255,0.25);
+  background-color: #051222 !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #051222 inset, 0 1px 0 rgba(255,255,255,0.05) inset, 0 18px 36px rgba(0,0,0,0.18) !important;
+  box-shadow: 0 0 0 1000px #051222 inset, 0 1px 0 rgba(255,255,255,0.05) inset, 0 18px 36px rgba(0,0,0,0.18) !important;
+}
 .gw-input input:focus {
   transform: translateY(-1px);
   border-color: var(--gw-border-focus);
-  background: rgba(5,18,34,0.96);
-  box-shadow: 0 0 0 4px rgba(87,245,214,0.12), 0 22px 42px rgba(0,0,0,0.24);
+  color: var(--gw-text);
+  color-scheme: dark;
+  -webkit-text-fill-color: var(--gw-text);
+  background-color: #051222 !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #051222 inset, 0 0 0 4px rgba(87,245,214,0.12), 0 22px 42px rgba(0,0,0,0.24) !important;
+  box-shadow: 0 0 0 1000px #051222 inset, 0 0 0 4px rgba(87,245,214,0.12), 0 22px 42px rgba(0,0,0,0.24) !important;
+}
+
+.gw-input input:active,
+.gw-input input:focus-visible {
+  color: var(--gw-text);
+  color-scheme: dark;
+  -webkit-text-fill-color: var(--gw-text);
+  background-color: #051222 !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #051222 inset, 0 0 0 4px rgba(87,245,214,0.12), 0 22px 42px rgba(0,0,0,0.24) !important;
+  box-shadow: 0 0 0 1000px #051222 inset, 0 0 0 4px rgba(87,245,214,0.12), 0 22px 42px rgba(0,0,0,0.24) !important;
+}
+
+.gw-input input:-webkit-autofill,
+.gw-input input:-webkit-autofill:hover,
+.gw-input input:-webkit-autofill:focus {
+  border-color: var(--gw-border-focus);
+  -webkit-text-fill-color: var(--gw-text);
+  caret-color: var(--gw-cyan);
+  background-color: #051222 !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #051222 inset, 0 0 0 4px rgba(87,245,214,0.12), 0 22px 42px rgba(0,0,0,0.24) !important;
+  box-shadow: 0 0 0 1000px #051222 inset, 0 0 0 4px rgba(87,245,214,0.12), 0 22px 42px rgba(0,0,0,0.24) !important;
+  transition: background-color 9999s ease-in-out 0s;
 }
 
 .gw-toggle {
@@ -310,8 +404,12 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; margin: 0; }
 }
 .gw-check { display: inline-flex; align-items: center; gap: 0.55rem; color: var(--gw-muted); font-size: 0.9rem; cursor: pointer; }
 .gw-check input { width: 1rem; height: 1rem; accent-color: var(--gw-cyan); }
-.gw-options a, .gw-register a { color: var(--gw-cyan); font-size: 0.9rem; font-weight: 850; text-decoration: none; }
-.gw-options a:hover, .gw-register a:hover { color: #b5fff1; text-decoration: underline; text-underline-offset: 4px; }
+.gw-options a,
+.gw-register a,
+.gw-auth-link { color: var(--gw-cyan); font-size: 0.9rem; font-weight: 850; text-decoration: none; }
+.gw-options a:hover,
+.gw-register a:hover,
+.gw-auth-link:hover { color: #b5fff1; text-decoration: underline; text-underline-offset: 4px; }
 
 .gw-submit {
   width: 100%;
@@ -370,6 +468,21 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; margin: 0; }
 .gw-username-hint a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .gw-username-hint-registered { color: var(--gw-cyan); }
 .gw-username-hint-external { color: var(--gw-muted-strong); }
+
+/* Touch devices: remove hover state (it "sticks" after tap and can conflict with focus) */
+@media (hover: none) and (pointer: coarse) {
+  .gw-input input:hover {
+    border-color: rgba(255,255,255,0.15);
+    background-color: #030c17 !important;
+    background-image: none !important;
+    -webkit-box-shadow: 0 0 0 1000px #030c17 inset, 0 1px 0 rgba(255,255,255,0.05) inset, 0 18px 36px rgba(0,0,0,0.18) !important;
+    box-shadow: 0 0 0 1000px #030c17 inset, 0 1px 0 rgba(255,255,255,0.05) inset, 0 18px 36px rgba(0,0,0,0.18) !important;
+  }
+  .gw-input input:focus {
+    /* No vertical shift on mobile — it can cause layout jumps */
+    transform: translateZ(0);
+  }
+}
 
 @media (max-width: 1200px) {
   .gw-page { grid-template-columns: 1fr; }
@@ -432,6 +545,7 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; margin: 0; }
     padding: 2rem 0.85rem;
     gap: 1.25rem;
   }
+  .gw-card-wrapper { width: 100%; }
   .gw-card { width: 100%; min-width: 0; margin-left: auto; margin-right: auto; padding: 1.2rem; border-radius: 28px; }
   .gw-card-topline { border-radius: 28px 28px 0 0; }
   .gw-mobile-brand {

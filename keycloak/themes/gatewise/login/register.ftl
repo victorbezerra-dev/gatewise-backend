@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${msg("gatewiseRegisterTitle")}</title>
     <link rel="icon" href="${url.resourcesCommonPath}/img/favicon.ico" />
-    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260606-logo-position" />
-    <link rel="stylesheet" href="${url.resourcesPath}/css/register.css?v=20260606-register" />
+    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260607-no-back-arrow-hover" />
+    <link rel="stylesheet" href="${url.resourcesPath}/css/register.css?v=20260607-register-back-no-arrow-hover" />
   </head>
   <body class="gw-body">
     <main class="gw-page">
@@ -47,7 +47,13 @@
           </div>
         </div>
 
-        <div class="gw-card gw-register-card">
+        <div class="gw-card-wrapper gw-register-wrapper">
+          <a class="gw-back-button" href="${url.loginUrl}" aria-label="${msg("gatewiseBackToLogin")}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.8 19.2 3.6 12l7.2-7.2 1.4 1.4L7.4 11H20v2H7.4l4.8 4.8-1.4 1.4Z"/></svg>
+            <span>${msg("gatewiseBackToLogin")}</span>
+          </a>
+
+          <div class="gw-card gw-register-card">
           <header class="gw-heading">
             <h2>${msg("gatewiseRegisterTitle")}</h2>
             <p>${msg("gatewiseRegisterSubtitle")}</p>
@@ -120,6 +126,7 @@
               </button>
             </div>
           </form>
+          </div>
         </div>
       </section>
     </main>

@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${msg("gatewiseResetPasswordTitle")}</title>
     <link rel="icon" href="${url.resourcesCommonPath}/img/favicon.ico" />
-    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260606-reset-password" />
-    <link rel="stylesheet" href="${url.resourcesPath}/css/reset-password.css?v=20260606-reset-password" />
+    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260607-no-back-arrow-hover" />
+    <link rel="stylesheet" href="${url.resourcesPath}/css/reset-password.css?v=20260607-reset-back-no-arrow-hover" />
   </head>
   <body class="gw-body">
     <main class="gw-page">
@@ -48,7 +48,12 @@
           </div>
         </div>
 
-        <div class="gw-card gw-reset-card">
+        <div class="gw-card-wrapper gw-reset-wrapper">
+          <a class="gw-back-button" href="${url.loginUrl}" aria-label="${msg("gatewiseBackToLogin")}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.8 19.2 3.6 12l7.2-7.2 1.4 1.4L7.4 11H20v2H7.4l4.8 4.8-1.4 1.4Z"/></svg>
+          </a>
+
+          <div class="gw-card gw-reset-card">
           <header class="gw-heading">
             <h2>${msg("gatewiseResetPasswordTitle")}</h2>
             <p>${msg("gatewiseResetPasswordSubtitle")}</p>
@@ -86,14 +91,12 @@
 
             <p class="gw-reset-hint">${msg("gatewiseResetPasswordInstruction")}</p>
 
-            <div class="gw-form-footer gw-reset-footer">
-              <a class="gw-back-link" href="${url.loginUrl}">${msg("gatewiseBackToLogin")}</a>
-              <button class="gw-submit" id="kc-reset-password-submit" type="submit">
-                <span class="gw-submit-spinner" aria-hidden="true"></span>
-                <span class="gw-submit-text">${msg("gatewiseResetPasswordSubmit")}</span>
-              </button>
-            </div>
+            <button class="gw-submit" id="kc-reset-password-submit" type="submit">
+              <span class="gw-submit-spinner" aria-hidden="true"></span>
+              <span class="gw-submit-text">${msg("gatewiseResetPasswordSubmit")}</span>
+            </button>
           </form>
+          </div>
         </div>
       </section>
 

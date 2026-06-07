@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${msg("loginTitle")}</title>
     <link rel="icon" href="${url.resourcesCommonPath}/img/favicon.ico" />
-    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260606-logo-position" />
+    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260607-no-back-arrow-hover" />
     <style>
       @media (max-width: 1200px) {
         .gw-page {
@@ -253,7 +253,7 @@
             <div class="gw-form-footer">
               <#if realm.password && realm.registrationAllowed && !registrationDisabled??>
                 <p class="gw-register-inline">
-                  ${msg("noAccount")} <a href="${url.registrationUrl}">${msg("doRegister")}</a>
+                  ${msg("noAccount")} <a class="gw-forgot" href="${url.registrationUrl}">${msg("doRegister")}</a>
                 </p>
               <#else>
                 <span></span>

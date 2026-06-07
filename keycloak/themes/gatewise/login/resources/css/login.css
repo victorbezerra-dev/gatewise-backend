@@ -9,7 +9,10 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body, .gatewise-login-shell, .gw-body { min-height: 100%; }
+html, body, .gatewise-login-shell, .gw-body {
+  min-height: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
 
 .gw-body {
   min-height: 100vh;
@@ -166,6 +169,7 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; }
 .gw-card {
   width: 100%;
   max-width: 415px;
+  color-scheme: light;
   background: #fff;
   border-radius: 20px;
   padding: clamp(2rem, 5vw, 2.5rem);
@@ -185,11 +189,56 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; }
   line-height: 1.2;
   letter-spacing: -0.03em;
   margin-bottom: 0.4rem;
+  margin-top: 15px;
 }
 .gw-heading p {
   color: var(--gw-muted);
   font-size: 0.9rem;
   line-height: 1.5;
+}
+
+.gw-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 415px;
+}
+
+.gw-card-wrapper > .gw-card {
+  max-width: 100%;
+}
+
+.gw-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  align-self: flex-start;
+  padding: 0.52rem 0.85rem 0.52rem 0.7rem;
+  color: var(--gw-muted);
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.13);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.gw-back-button svg {
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
+  transition: transform 140ms ease;
+}
+
+.gw-back-button:hover,
+.gw-back-button:focus-visible {
+  color: var(--gw-blue);
+  border-color: rgba(59,91,255,0.25);
+  background: rgba(59,91,255,0.06);
+  outline: none;
 }
 
 .gw-alert {
@@ -231,22 +280,31 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; }
   align-items: center;
   justify-content: space-between;
 }
-.gw-forgot {
+.gw-forgot,
+.gw-register-inline a {
   color: var(--gw-blue);
   font-size: 0.8rem;
   font-weight: 600;
   text-decoration: none;
 }
-.gw-forgot:hover { text-decoration: underline; text-underline-offset: 3px; }
+.gw-forgot:hover,
+.gw-register-inline a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 .gw-field > input {
   width: 100%;
   height: 48px;
   padding: 0 1rem;
   color: var(--gw-text);
+  color-scheme: light;
+  -webkit-text-fill-color: var(--gw-text);
+  -webkit-appearance: none;
+  appearance: none;
   font-size: 0.95rem;
   font-family: inherit;
-  background: #f9fafb;
+  background-color: #f9fafb !important;
+  background-image: none !important;
+  background-clip: padding-box;
+  -webkit-tap-highlight-color: transparent;
   border: 1.5px solid var(--gw-border);
   border-radius: 10px;
   outline: none;
@@ -256,8 +314,35 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; }
 .gw-field > input:hover  { border-color: #d1d5db; background: #f3f4f6; }
 .gw-field > input:focus  {
   border-color: var(--gw-blue);
-  background: #fff;
+  color: var(--gw-text);
+  color-scheme: light;
+  -webkit-text-fill-color: var(--gw-text);
+  background-color: #f9fafb !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 3px rgba(59, 91, 255, 0.12) !important;
   box-shadow: 0 0 0 3px rgba(59, 91, 255, 0.12);
+}
+
+.gw-field > input:active,
+.gw-field > input:focus-visible {
+  color: var(--gw-text);
+  color-scheme: light;
+  -webkit-text-fill-color: var(--gw-text);
+  background-color: #f9fafb !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #f9fafb inset !important;
+  box-shadow: 0 0 0 1000px #f9fafb inset !important;
+}
+
+.gw-field > input:-webkit-autofill,
+.gw-field > input:-webkit-autofill:hover,
+.gw-field > input:-webkit-autofill:focus {
+  border-color: var(--gw-blue);
+  -webkit-text-fill-color: var(--gw-text);
+  caret-color: var(--gw-text);
+  -webkit-box-shadow: 0 0 0 1000px #f9fafb inset, 0 0 0 3px rgba(59, 91, 255, 0.12) !important;
+  box-shadow: 0 0 0 1000px #f9fafb inset, 0 0 0 3px rgba(59, 91, 255, 0.12) !important;
+  transition: background-color 9999s ease-in-out 0s;
 }
 
 .gw-input-wrap { position: relative; display: flex; align-items: center; }
@@ -266,9 +351,16 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; }
   height: 48px;
   padding: 0 3rem 0 1rem;
   color: var(--gw-text);
+  color-scheme: light;
+  -webkit-text-fill-color: var(--gw-text);
+  -webkit-appearance: none;
+  appearance: none;
   font-size: 0.95rem;
   font-family: inherit;
-  background: #f9fafb;
+  background-color: #f9fafb !important;
+  background-image: none !important;
+  background-clip: padding-box;
+  -webkit-tap-highlight-color: transparent;
   border: 1.5px solid var(--gw-border);
   border-radius: 10px;
   outline: none;
@@ -278,8 +370,35 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; }
 .gw-input-wrap input:hover  { border-color: #d1d5db; background: #f3f4f6; }
 .gw-input-wrap input:focus  {
   border-color: var(--gw-blue);
-  background: #fff;
+  color: var(--gw-text);
+  color-scheme: light;
+  -webkit-text-fill-color: var(--gw-text);
+  background-color: #f9fafb !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 3px rgba(59, 91, 255, 0.12) !important;
   box-shadow: 0 0 0 3px rgba(59, 91, 255, 0.12);
+}
+
+.gw-input-wrap input:active,
+.gw-input-wrap input:focus-visible {
+  color: var(--gw-text);
+  color-scheme: light;
+  -webkit-text-fill-color: var(--gw-text);
+  background-color: #f9fafb !important;
+  background-image: none !important;
+  -webkit-box-shadow: 0 0 0 1000px #f9fafb inset !important;
+  box-shadow: 0 0 0 1000px #f9fafb inset !important;
+}
+
+.gw-input-wrap input:-webkit-autofill,
+.gw-input-wrap input:-webkit-autofill:hover,
+.gw-input-wrap input:-webkit-autofill:focus {
+  border-color: var(--gw-blue);
+  -webkit-text-fill-color: var(--gw-text);
+  caret-color: var(--gw-text);
+  -webkit-box-shadow: 0 0 0 1000px #f9fafb inset, 0 0 0 3px rgba(59, 91, 255, 0.12) !important;
+  box-shadow: 0 0 0 1000px #f9fafb inset, 0 0 0 3px rgba(59, 91, 255, 0.12) !important;
+  transition: background-color 9999s ease-in-out 0s;
 }
 
 .gw-toggle {
@@ -324,12 +443,6 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; }
   font-size: 0.82rem;
   line-height: 1.4;
 }
-.gw-register-inline a {
-  color: var(--gw-blue);
-  font-weight: 700;
-  text-decoration: none;
-}
-.gw-register-inline a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 .gw-submit {
   flex-shrink: 0;
@@ -376,6 +489,23 @@ html, body, .gatewise-login-shell, .gw-body { min-height: 100%; }
 }
 .gw-submit.is-loading .gw-submit-spinner { display: inline-block; }
 @keyframes gw-spin { to { transform: rotate(360deg); } }
+
+/* Touch devices: remove hover state (it "sticks" after tap and can conflict with focus) */
+@media (hover: none) and (pointer: coarse) {
+  .gw-field > input:hover,
+  .gw-input-wrap input:hover {
+    border-color: var(--gw-border);
+    background-color: #f9fafb !important;
+    background-image: none !important;
+    -webkit-box-shadow: 0 0 0 1000px #f9fafb inset !important;
+    box-shadow: 0 0 0 1000px #f9fafb inset !important;
+  }
+  .gw-field > input:focus,
+  .gw-input-wrap input:focus {
+    /* No vertical shift on mobile — it can cause layout jumps */
+    transform: translateZ(0);
+  }
+}
 
 @media (max-width: 1200px) {
   .gw-page {

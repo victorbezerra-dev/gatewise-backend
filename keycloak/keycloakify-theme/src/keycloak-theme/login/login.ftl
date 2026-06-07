@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${msg("loginTitle")}</title>
     <link rel="icon" href="${url.resourcesCommonPath}/img/favicon.ico" />
-    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260605-login-loading" />
+    <link rel="stylesheet" href="${url.resourcesPath}/css/login.css?v=20260607-no-back-arrow-hover" />
     <style>
       @media (max-width: 1200px) {
         .gw-page { grid-template-columns: 1fr !important; }
@@ -191,7 +191,7 @@
             </button>
           </form>
 
-          <p class="gw-register">${msg("noAccount")} <a href="${url.registrationUrl}">${msg("doRegister")}</a></p>
+          <p class="gw-register">${msg("noAccount")} <a class="gw-auth-link" href="${url.registrationUrl}">${msg("doRegister")}</a></p>
         </div>
       </section>
     </main>
