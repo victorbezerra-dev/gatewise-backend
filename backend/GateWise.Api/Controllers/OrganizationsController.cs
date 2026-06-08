@@ -36,6 +36,20 @@ public class OrganizationsController : ControllerBase
         return Ok(orgs.Select(OrganizationResponseDto.From));
     }
 
+    [HttpGet("memberships")]
+    public async Task<IActionResult> GetMemberships()
+    {
+        var userId = GetUserId();
+        var memberships = await _memberRepositorysitory.GetByUserIdAsync(userId);
+        var result = memberships.Select(m => new
+        {
+            Organization = OrganizationResponseDto.From(m.Organization),
+            m.Role,
+            m.JoinedAt
+        });
+        return Ok(result);
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<OrganizationResponseDto>> GetById(int id)
     {
@@ -104,11 +118,18 @@ public class OrganizationsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Delete(int id)
     {
+        var userId = GetUserId();
         var org = await _organizationRepository.GetByIdAsync(id);
         if (org is null) return NotFound();
+
+        if (!User.IsInRole("admin"))
+        {
+            var member = await _memberRepositorysitory.GetAsync(id, userId);
+            if (member is null || member.Role != OrganizationMemberRole.Owner)
+                return Forbid();
+        }
 
         await _organizationRepository.DeleteAsync(org);
         return NoContent();
