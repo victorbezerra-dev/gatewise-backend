@@ -9,7 +9,6 @@ public class OrganizationResponseDto
     public string? Description { get; set; }
     public string? LogoUrl { get; set; }
     public bool IsActive { get; set; }
-    public bool IsInstitutional { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
@@ -20,7 +19,6 @@ public class OrganizationResponseDto
         Description = org.Description,
         LogoUrl = org.LogoUrl,
         IsActive = org.IsActive,
-        IsInstitutional = org.IsInstitutional,
         CreatedAt = org.CreatedAt,
         UpdatedAt = org.UpdatedAt
     };

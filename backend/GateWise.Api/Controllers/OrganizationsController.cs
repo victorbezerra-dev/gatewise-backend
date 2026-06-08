@@ -77,7 +77,6 @@ public class OrganizationsController : ControllerBase
             Description = dto.Description,
             LogoUrl = dto.LogoUrl,
             IsActive = dto.IsActive,
-            IsInstitutional = dto.IsInstitutional,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -111,7 +110,6 @@ public class OrganizationsController : ControllerBase
         org.Description = dto.Description;
         org.LogoUrl = dto.LogoUrl;
         org.IsActive = dto.IsActive;
-        org.IsInstitutional = dto.IsInstitutional;
 
         await _organizationRepository.UpdateAsync(org);
         return NoContent();

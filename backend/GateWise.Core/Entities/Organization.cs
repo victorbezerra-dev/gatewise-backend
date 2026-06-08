@@ -7,7 +7,6 @@ public class Organization
     public string? Description { get; set; }
     public string? LogoUrl { get; set; }
     public bool IsActive { get; set; } = true;
-    public bool IsInstitutional { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
