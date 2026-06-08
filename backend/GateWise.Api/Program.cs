@@ -52,7 +52,9 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddSingleton<IAuthorizationHandler, GatewiseClientHandler>();
 builder.Services.AddScoped<IClaimsTransformation, KeycloakClaimsTransformer>();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 builder.Services
     .AddJwtAuthentication(builder.Configuration)
     .AddCustomAuthorization()
