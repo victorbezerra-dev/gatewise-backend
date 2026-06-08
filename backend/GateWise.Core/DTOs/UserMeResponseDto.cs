@@ -27,7 +27,6 @@ public class UserMeResponseDto
         {
             Id = m.OrganizationId,
             Name = m.Organization.Name,
-            LogoUrl = m.Organization.LogoUrl,
             Role = m.Role
         }).ToList()
     };
@@ -37,6 +36,5 @@ public class UserOrganizationDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public string? LogoUrl { get; set; }
     public OrganizationMemberRole Role { get; set; }
 }

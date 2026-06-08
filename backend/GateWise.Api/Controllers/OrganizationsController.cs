@@ -75,7 +75,6 @@ public class OrganizationsController : ControllerBase
         {
             Name = dto.Name,
             Description = dto.Description,
-            LogoUrl = dto.LogoUrl,
             IsActive = dto.IsActive,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -108,7 +107,6 @@ public class OrganizationsController : ControllerBase
 
         org.Name = dto.Name;
         org.Description = dto.Description;
-        org.LogoUrl = dto.LogoUrl;
         org.IsActive = dto.IsActive;
 
         await _organizationRepository.UpdateAsync(org);
