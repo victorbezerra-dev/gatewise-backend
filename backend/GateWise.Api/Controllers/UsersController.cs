@@ -13,16 +13,13 @@ public class UsersController : ControllerBase
 {
     private readonly IUserRepository _repository;
     private readonly IOrganizationMemberRepository _memberRepository;
-    private readonly IOrganizationInviteRepository _inviteRepository;
 
     public UsersController(
         IUserRepository repository,
-        IOrganizationMemberRepository memberRepository,
-        IOrganizationInviteRepository inviteRepository)
+        IOrganizationMemberRepository memberRepository)
     {
         _repository = repository;
         _memberRepository = memberRepository;
-        _inviteRepository = inviteRepository;
     }
 
     [Authorize]
@@ -56,27 +53,6 @@ public class UsersController : ControllerBase
             ?? string.Empty;
 
         var user = await _repository.UpsertFromClaimsAsync(userId, name, email);
-
-        if (!string.IsNullOrWhiteSpace(email))
-        {
-            var pendingInvites = await _inviteRepository.GetPendingByEmailAsync(email);
-            foreach (var invite in pendingInvites)
-            {
-                var already = await _memberRepository.GetAsync(invite.OrganizationId, userId);
-                if (already is not null) continue;
-
-                await _memberRepository.AddAsync(new OrganizationMember
-                {
-                    OrganizationId = invite.OrganizationId,
-                    UserId = userId,
-                    Role = invite.Role,
-                    JoinedAt = DateTime.UtcNow
-                });
-
-                invite.Status = GateWise.Core.Enums.OrganizationInviteStatus.Accepted;
-                await _inviteRepository.UpdateAsync(invite);
-            }
-        }
 
         var memberships = await _memberRepository.GetByUserIdAsync(userId);
 

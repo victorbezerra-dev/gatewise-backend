@@ -149,11 +149,12 @@ public class OrganizationsController : ControllerBase
         var invite = new OrganizationInvite
         {
             OrganizationId = id,
-            Email = dto.Email,
             Code = Convert.ToHexString(RandomNumberGenerator.GetBytes(4)),
             Role = dto.Role,
-            Status = OrganizationInviteStatus.Pending,
-            ExpiresAt = DateTime.UtcNow.AddDays(dto.ExpiresInDays),
+            IsActive = true,
+            MaxUses = dto.MaxUses,
+            UsesCount = 0,
+            ExpiresAt = dto.ExpiresInDays.HasValue ? DateTime.UtcNow.AddDays(dto.ExpiresInDays.Value) : null,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -180,7 +181,13 @@ public class OrganizationsController : ControllerBase
         var userId = GetUserId();
 
         var invite = await _inviteRepositorysitory.GetByCodeAsync(dto.Code);
-        if (invite is null)
+        if (invite is null || !invite.IsActive)
+            return BadRequest("Invalid or expired invite code.");
+
+        if (invite.ExpiresAt.HasValue && invite.ExpiresAt.Value < DateTime.UtcNow)
+            return BadRequest("Invalid or expired invite code.");
+
+        if (invite.MaxUses.HasValue && invite.UsesCount >= invite.MaxUses.Value)
             return BadRequest("Invalid or expired invite code.");
 
         var existing = await _memberRepositorysitory.GetAsync(invite.OrganizationId, userId);
@@ -197,7 +204,10 @@ public class OrganizationsController : ControllerBase
 
         await _memberRepositorysitory.AddAsync(membership);
 
-        invite.Status = OrganizationInviteStatus.Accepted;
+        invite.UsesCount++;
+        if (invite.MaxUses.HasValue && invite.UsesCount >= invite.MaxUses.Value)
+            invite.IsActive = false;
+
         await _inviteRepositorysitory.UpdateAsync(invite);
 
         return Ok(OrganizationResponseDto.From(invite.Organization));
@@ -251,7 +261,7 @@ public class OrganizationsController : ControllerBase
         if (invite is null || invite.OrganizationId != id)
             return NotFound();
 
-        invite.Status = OrganizationInviteStatus.Revoked;
+        invite.IsActive = false;
         await _inviteRepositorysitory.UpdateAsync(invite);
         return NoContent();
     }

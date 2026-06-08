@@ -4,7 +4,7 @@ namespace GateWise.Core.DTOs;
 
 public class CreateInviteDto
 {
-    public string? Email { get; set; }
     public OrganizationMemberRole Role { get; set; } = OrganizationMemberRole.Member;
-    public int ExpiresInDays { get; set; } = 7;
+    public int? ExpiresInDays { get; set; }
+    public int? MaxUses { get; set; }
 }
