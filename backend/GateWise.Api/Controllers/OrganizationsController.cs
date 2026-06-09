@@ -45,25 +45,35 @@ public class OrganizationsController : ControllerBase
         {
             Organization = OrganizationResponseDto.From(m.Organization),
             m.Role,
-            m.JoinedAt
+            m.JoinedAt,
+            m.StartsAt,
+            m.ExpiresAt
         });
         return Ok(result);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<OrganizationResponseDto>> GetById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
         var userId = GetUserId();
         var org = await _organizationRepository.GetByIdAsync(id);
         if (org is null) return NotFound();
 
+        OrganizationMember? member = null;
         if (!User.IsInRole("admin"))
         {
-            var member = await _memberRepositorysitory.GetAsync(id, userId);
+            member = await _memberRepositorysitory.GetAsync(id, userId);
             if (member is null) return Forbid();
         }
 
-        return Ok(OrganizationResponseDto.From(org));
+        return Ok(new
+        {
+            Organization = OrganizationResponseDto.From(org),
+            member?.Role,
+            member?.JoinedAt,
+            member?.StartsAt,
+            member?.ExpiresAt
+        });
     }
 
     [HttpPost]
@@ -151,6 +161,8 @@ public class OrganizationsController : ControllerBase
             MaxUses = dto.MaxUses,
             UsesCount = 0,
             ExpiresAt = dto.ExpiresInDays.HasValue ? DateTime.UtcNow.AddDays(dto.ExpiresInDays.Value) : null,
+            MemberStartsAt = dto.MemberStartsAt,
+            MemberExpiresAt = dto.MemberExpiresAt,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -195,7 +207,9 @@ public class OrganizationsController : ControllerBase
             OrganizationId = invite.OrganizationId,
             UserId = userId,
             Role = invite.Role,
-            JoinedAt = DateTime.UtcNow
+            JoinedAt = DateTime.UtcNow,
+            StartsAt = invite.MemberStartsAt,
+            ExpiresAt = invite.MemberExpiresAt
         };
 
         await _memberRepositorysitory.AddAsync(membership);
@@ -224,7 +238,9 @@ public class OrganizationsController : ControllerBase
             m.User.Name,
             m.User.Email,
             m.Role,
-            m.JoinedAt
+            m.JoinedAt,
+            m.StartsAt,
+            m.ExpiresAt
         }));
     }
 

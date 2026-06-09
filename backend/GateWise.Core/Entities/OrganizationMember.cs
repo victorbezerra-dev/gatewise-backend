@@ -11,4 +11,6 @@ public class OrganizationMember
     public User User { get; set; } = null!;
     public OrganizationMemberRole Role { get; set; } = OrganizationMemberRole.Member;
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? StartsAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
 }

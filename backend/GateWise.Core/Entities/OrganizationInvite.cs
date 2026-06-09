@@ -13,5 +13,7 @@ public class OrganizationInvite
     public int? MaxUses { get; set; }
     public int UsesCount { get; set; } = 0;
     public DateTime? ExpiresAt { get; set; }
+    public DateTime? MemberStartsAt { get; set; }
+    public DateTime? MemberExpiresAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

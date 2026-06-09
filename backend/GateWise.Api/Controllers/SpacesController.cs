@@ -124,6 +124,18 @@ public class SpacesController : ControllerBase
         if (string.IsNullOrEmpty(userId))
             return Unauthorized("User ID not found in token.");
 
+        var space = await _spaceRepository.GetByIdAsync(id);
+        if (space is null) return NotFound();
+
+        var member = await _memberRepositorysitory.GetAsync(space.OrganizationId, userId);
+        if (member is null) return Forbid();
+
+        var now = DateTime.UtcNow;
+        if (member.StartsAt.HasValue && now < member.StartsAt.Value)
+            return Forbid();
+        if (member.ExpiresAt.HasValue && now > member.ExpiresAt.Value)
+            return Forbid();
+
         var result = await _spaceAccessService.RequestSpaceAccessAsync(userId, id, dto);
         return Ok(new { commandId = result });
     }
