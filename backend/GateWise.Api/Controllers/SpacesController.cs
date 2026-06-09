@@ -66,7 +66,7 @@ public class SpacesController : ControllerBase
         return Ok(SpaceResponseDto.From(space));
     }
 
-    [Authorize(Roles = "admin,manager")]
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult<SpaceResponseDto>> Create([FromBody] SpaceUpsertDto dto)
     {
@@ -135,7 +135,7 @@ public class SpacesController : ControllerBase
         return confirmed ? Ok() : StatusCode(403, "Access not confirmed by app");
     }
 
-    [Authorize(Roles = "admin,manager")]
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] SpaceUpsertDto dto)
     {
@@ -167,7 +167,7 @@ public class SpacesController : ControllerBase
         return NoContent();
     }
 
-    [Authorize(Roles = "admin,manager")]
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {

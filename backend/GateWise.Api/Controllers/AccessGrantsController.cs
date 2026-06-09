@@ -30,7 +30,7 @@ public class AccessGrantsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "admin,manager")]
+    [Authorize]
     public async Task<ActionResult<IEnumerable<AccessGrantResponseDto>>> GetAll([FromQuery] string? search)
     {
         if (User.IsInRole("admin"))
@@ -52,7 +52,7 @@ public class AccessGrantsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize(Roles = "admin,manager")]
+    [Authorize]
     public async Task<ActionResult<AccessGrantResponseDto>> GetById(int id)
     {
         var accessGrant = await _accessGrantRepository.GetByIdAsync(id);
@@ -106,7 +106,7 @@ public class AccessGrantsController : ControllerBase
     }
 
     [HttpPut("{id}/review")]
-    [Authorize(Roles = "admin,manager")]
+    [Authorize]
     public async Task<ActionResult> ReviewAccessGrant(int id, [FromBody] ReviewAccessGrantDto dto)
     {
         var accessGrant = await _accessGrantRepository.GetByIdAsync(id);
@@ -142,18 +142,29 @@ public class AccessGrantsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "admin,manager")]
+    [Authorize]
     public async Task<ActionResult> Delete(int id)
     {
         var accessGrant = await _accessGrantRepository.GetByIdAsync(id);
         if (accessGrant is null) return NotFound();
 
-        if (!User.IsInRole("admin"))
+        var callerId = GetUserId();
+
+        if (!User.IsInRole("admin") && accessGrant.AuthorizedUserId != callerId)
         {
-            var userId = GetUserId();
-            var member = await _memberRepository.GetAsync(accessGrant.Space.OrganizationId, userId);
-            if (member is null || (member.Role != OrganizationMemberRole.Owner && member.Role != OrganizationMemberRole.Manager))
+            var callerMember = await _memberRepository.GetAsync(accessGrant.Space.OrganizationId, callerId);
+            if (callerMember is null) return Forbid();
+
+            if (callerMember.Role == OrganizationMemberRole.Manager)
+            {
+                var targetMember = await _memberRepository.GetAsync(accessGrant.Space.OrganizationId, accessGrant.AuthorizedUserId);
+                if (targetMember?.Role == OrganizationMemberRole.Owner)
+                    return Forbid();
+            }
+            else if (callerMember.Role != OrganizationMemberRole.Owner)
+            {
                 return Forbid();
+            }
         }
 
         await _accessGrantRepository.DeleteAsync(accessGrant);
