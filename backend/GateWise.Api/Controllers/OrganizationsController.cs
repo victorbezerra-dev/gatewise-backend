@@ -115,8 +115,12 @@ public class OrganizationsController : ControllerBase
         var org = await _organizationRepository.GetByIdAsync(id);
         if (org is null) return NotFound();
 
-        if (!User.IsInRole("admin") && !await _memberRepositorysitory.IsOwnerOrManagerAsync(id, userId))
-            return Forbid();
+        if (!User.IsInRole("admin"))
+        {
+            var member = await _memberRepositorysitory.GetAsync(id, userId);
+            if (member is null || member.Role != OrganizationMemberRole.Owner)
+                return Forbid();
+        }
 
         org.Name = dto.Name;
         org.Description = dto.Description;
@@ -149,8 +153,12 @@ public class OrganizationsController : ControllerBase
     {
         var userId = GetUserId();
 
-        if (!User.IsInRole("admin") && !await _memberRepositorysitory.IsOwnerOrManagerAsync(id, userId))
-            return Forbid();
+        if (!User.IsInRole("admin"))
+        {
+            var caller = await _memberRepositorysitory.GetAsync(id, userId);
+            if (caller is null || caller.Role != OrganizationMemberRole.Owner)
+                return Forbid();
+        }
 
         var org = await _organizationRepository.GetByIdAsync(id);
         if (org is null) return NotFound();
@@ -182,8 +190,12 @@ public class OrganizationsController : ControllerBase
     {
         var userId = GetUserId();
 
-        if (!User.IsInRole("admin") && !await _memberRepositorysitory.IsOwnerOrManagerAsync(id, userId))
-            return Forbid();
+        if (!User.IsInRole("admin"))
+        {
+            var caller = await _memberRepositorysitory.GetAsync(id, userId);
+            if (caller is null || caller.Role != OrganizationMemberRole.Owner)
+                return Forbid();
+        }
 
         var invites = await _inviteRepositorysitory.GetByOrganizationIdAsync(id);
         return Ok(invites.Select(InviteResponseDto.From));
@@ -266,8 +278,12 @@ public class OrganizationsController : ControllerBase
     public async Task<IActionResult> RemoveMember(int id, int memberId)
     {
         var userId = GetUserId();
-        if (!User.IsInRole("admin") && !await _memberRepositorysitory.IsOwnerOrManagerAsync(id, userId))
-            return Forbid();
+        if (!User.IsInRole("admin"))
+        {
+            var caller = await _memberRepositorysitory.GetAsync(id, userId);
+            if (caller is null || caller.Role != OrganizationMemberRole.Owner)
+                return Forbid();
+        }
 
         var member = await _memberRepositorysitory.GetByIdAsync(memberId);
         if (member is null || member.OrganizationId != id)
@@ -284,8 +300,12 @@ public class OrganizationsController : ControllerBase
     public async Task<IActionResult> RevokeInvite(int id, int inviteId)
     {
         var userId = GetUserId();
-        if (!User.IsInRole("admin") && !await _memberRepositorysitory.IsOwnerOrManagerAsync(id, userId))
-            return Forbid();
+        if (!User.IsInRole("admin"))
+        {
+            var caller = await _memberRepositorysitory.GetAsync(id, userId);
+            if (caller is null || caller.Role != OrganizationMemberRole.Owner)
+                return Forbid();
+        }
 
         var invite = await _inviteRepositorysitory.GetByIdAsync(inviteId);
         if (invite is null || invite.OrganizationId != id)
