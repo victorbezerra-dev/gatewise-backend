@@ -9,4 +9,5 @@ public class CreateInviteDto
     public int? MaxUses { get; set; }
     public DateTime? MemberStartsAt { get; set; }
     public DateTime? MemberExpiresAt { get; set; }
+    public List<int> SpaceIds { get; set; } = [];
 }

@@ -12,6 +12,9 @@ public class InviteResponseDto
     public int? MaxUses { get; set; }
     public int UsesCount { get; set; }
     public DateTime? ExpiresAt { get; set; }
+    public DateTime? MemberStartsAt { get; set; }
+    public DateTime? MemberExpiresAt { get; set; }
+    public List<int> SpaceIds { get; set; } = [];
     public DateTime CreatedAt { get; set; }
 
     public static InviteResponseDto From(OrganizationInvite invite) => new()
@@ -23,6 +26,9 @@ public class InviteResponseDto
         MaxUses = invite.MaxUses,
         UsesCount = invite.UsesCount,
         ExpiresAt = invite.ExpiresAt,
+        MemberStartsAt = invite.MemberStartsAt,
+        MemberExpiresAt = invite.MemberExpiresAt,
+        SpaceIds = invite.InviteSpaces.Select(s => s.SpaceId).ToList(),
         CreatedAt = invite.CreatedAt
     };
 }

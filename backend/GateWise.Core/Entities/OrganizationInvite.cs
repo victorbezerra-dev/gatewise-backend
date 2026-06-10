@@ -16,4 +16,6 @@ public class OrganizationInvite
     public DateTime? MemberStartsAt { get; set; }
     public DateTime? MemberExpiresAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public ICollection<OrganizationInviteSpace> InviteSpaces { get; set; } = [];
 }

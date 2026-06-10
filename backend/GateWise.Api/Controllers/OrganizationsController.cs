@@ -17,15 +17,18 @@ public class OrganizationsController : ControllerBase
     private readonly IOrganizationRepository _organizationRepository;
     private readonly IOrganizationMemberRepository _memberRepositorysitory;
     private readonly IOrganizationInviteRepository _inviteRepositorysitory;
+    private readonly ISpaceManagerRepository _spaceManagerRepository;
 
     public OrganizationsController(
         IOrganizationRepository organizationRepository,
         IOrganizationMemberRepository memberRepository,
-        IOrganizationInviteRepository inviteRepository)
+        IOrganizationInviteRepository inviteRepository,
+        ISpaceManagerRepository spaceManagerRepository)
     {
         _organizationRepository = organizationRepository;
         _memberRepositorysitory = memberRepository;
         _inviteRepositorysitory = inviteRepository;
+        _spaceManagerRepository = spaceManagerRepository;
     }
 
     [HttpGet]
@@ -163,7 +166,10 @@ public class OrganizationsController : ControllerBase
             ExpiresAt = dto.ExpiresInDays.HasValue ? DateTime.UtcNow.AddDays(dto.ExpiresInDays.Value) : null,
             MemberStartsAt = dto.MemberStartsAt,
             MemberExpiresAt = dto.MemberExpiresAt,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            InviteSpaces = dto.Role == OrganizationMemberRole.Manager
+                ? dto.SpaceIds.Select(spaceId => new OrganizationInviteSpace { SpaceId = spaceId }).ToList()
+                : []
         };
 
         await _inviteRepositorysitory.AddAsync(invite);
@@ -213,6 +219,18 @@ public class OrganizationsController : ControllerBase
         };
 
         await _memberRepositorysitory.AddAsync(membership);
+
+        if (invite.Role == OrganizationMemberRole.Manager)
+        {
+            foreach (var inviteSpace in invite.InviteSpaces)
+            {
+                await _spaceManagerRepository.AddAsync(new SpaceManager
+                {
+                    SpaceId = inviteSpace.SpaceId,
+                    UserId = userId
+                });
+            }
+        }
 
         invite.UsesCount++;
         if (invite.MaxUses.HasValue && invite.UsesCount >= invite.MaxUses.Value)

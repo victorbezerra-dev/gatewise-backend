@@ -20,10 +20,12 @@ public class OrganizationInviteRepository : IOrganizationInviteRepository
     public async Task<OrganizationInvite?> GetByCodeAsync(string code) =>
         await _context.OrganizationInvites
             .Include(i => i.Organization)
+            .Include(i => i.InviteSpaces)
             .FirstOrDefaultAsync(i => i.Code == code);
 
     public async Task<IEnumerable<OrganizationInvite>> GetByOrganizationIdAsync(int organizationId) =>
         await _context.OrganizationInvites
+            .Include(i => i.InviteSpaces)
             .Where(i => i.OrganizationId == organizationId)
             .ToListAsync();
 
