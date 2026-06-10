@@ -16,17 +16,20 @@ public class AccessGrantsController : ControllerBase
     private readonly IUserRepository _userRepository;
     private readonly ISpaceRepository _spaceRepository;
     private readonly IOrganizationMemberRepository _memberRepository;
+    private readonly ISpaceManagerRepository _spaceManagerRepository;
 
     public AccessGrantsController(
         IAccessGrantRepository accessGrantRepository,
         IUserRepository userRepository,
         ISpaceRepository spaceRepository,
-        IOrganizationMemberRepository memberRepository)
+        IOrganizationMemberRepository memberRepository,
+        ISpaceManagerRepository spaceManagerRepository)
     {
         _accessGrantRepository = accessGrantRepository;
         _userRepository = userRepository;
         _spaceRepository = spaceRepository;
         _memberRepository = memberRepository;
+        _spaceManagerRepository = spaceManagerRepository;
     }
 
     [HttpGet]
@@ -41,13 +44,20 @@ public class AccessGrantsController : ControllerBase
 
         var userId = GetUserId();
         var memberships = await _memberRepository.GetByUserIdAsync(userId);
-        var orgIds = memberships
-            .Where(m => m.Role == OrganizationMemberRole.Owner || m.Role == OrganizationMemberRole.Manager)
+
+        var ownerOrgIds = memberships
+            .Where(m => m.Role == OrganizationMemberRole.Owner)
             .Select(m => m.OrganizationId)
             .ToHashSet();
 
+        var assignedSpaceIds = (await _spaceManagerRepository.GetByUserIdAsync(userId))
+            .Select(sm => sm.SpaceId)
+            .ToHashSet();
+
         var grants = await _accessGrantRepository.GetAllAsync(search);
-        var filtered = grants.Where(g => orgIds.Contains(g.Space.OrganizationId));
+        var filtered = grants.Where(g =>
+            ownerOrgIds.Contains(g.Space.OrganizationId) ||
+            assignedSpaceIds.Contains(g.SpaceId));
         return Ok(filtered.Select(AccessGrantResponseDto.From));
     }
 
@@ -62,7 +72,12 @@ public class AccessGrantsController : ControllerBase
         {
             var userId = GetUserId();
             var member = await _memberRepository.GetAsync(accessGrant.Space.OrganizationId, userId);
-            if (member is null || (member.Role != OrganizationMemberRole.Owner && member.Role != OrganizationMemberRole.Manager))
+            if (member is null) return Forbid();
+
+            if (member.Role == OrganizationMemberRole.Manager && !await _spaceManagerRepository.IsManagerOfSpaceAsync(accessGrant.SpaceId, userId))
+                return Forbid();
+
+            if (member.Role != OrganizationMemberRole.Owner && member.Role != OrganizationMemberRole.Manager)
                 return Forbid();
         }
 
@@ -116,7 +131,12 @@ public class AccessGrantsController : ControllerBase
         {
             var userId = GetUserId();
             var member = await _memberRepository.GetAsync(accessGrant.Space.OrganizationId, userId);
-            if (member is null || (member.Role != OrganizationMemberRole.Owner && member.Role != OrganizationMemberRole.Manager))
+            if (member is null) return Forbid();
+
+            if (member.Role == OrganizationMemberRole.Manager && !await _spaceManagerRepository.IsManagerOfSpaceAsync(accessGrant.SpaceId, userId))
+                return Forbid();
+
+            if (member.Role != OrganizationMemberRole.Owner && member.Role != OrganizationMemberRole.Manager)
                 return Forbid();
         }
 
@@ -157,6 +177,9 @@ public class AccessGrantsController : ControllerBase
 
             if (callerMember.Role == OrganizationMemberRole.Manager)
             {
+                if (!await _spaceManagerRepository.IsManagerOfSpaceAsync(accessGrant.SpaceId, callerId))
+                    return Forbid();
+
                 var targetMember = await _memberRepository.GetAsync(accessGrant.Space.OrganizationId, accessGrant.AuthorizedUserId);
                 if (targetMember?.Role == OrganizationMemberRole.Owner)
                     return Forbid();

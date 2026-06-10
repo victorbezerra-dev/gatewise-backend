@@ -14,15 +14,18 @@ public class SpacesController : ControllerBase
     private readonly ISpaceRepository _spaceRepository;
     private readonly ISpaceAccessService _spaceAccessService;
     private readonly IOrganizationMemberRepository _memberRepositorysitory;
+    private readonly ISpaceManagerRepository _spaceManagerRepository;
 
     public SpacesController(
         ISpaceRepository spaceRepository,
         ISpaceAccessService spaceAccessService,
-        IOrganizationMemberRepository memberRepository)
+        IOrganizationMemberRepository memberRepository,
+        ISpaceManagerRepository spaceManagerRepository)
     {
         _spaceRepository = spaceRepository;
         _spaceAccessService = spaceAccessService;
         _memberRepositorysitory = memberRepository;
+        _spaceManagerRepository = spaceManagerRepository;
     }
 
     [Authorize]
@@ -158,7 +161,12 @@ public class SpacesController : ControllerBase
         {
             var userId = GetUserId();
             var member = await _memberRepositorysitory.GetAsync(space.OrganizationId, userId);
-            if (member is null || (member.Role != OrganizationMemberRole.Owner && member.Role != OrganizationMemberRole.Manager))
+            if (member is null) return Forbid();
+
+            if (member.Role == OrganizationMemberRole.Manager && !await _spaceManagerRepository.IsManagerOfSpaceAsync(space.Id, userId))
+                return Forbid();
+
+            if (member.Role != OrganizationMemberRole.Owner && member.Role != OrganizationMemberRole.Manager)
                 return Forbid();
         }
 
@@ -190,7 +198,12 @@ public class SpacesController : ControllerBase
         {
             var userId = GetUserId();
             var member = await _memberRepositorysitory.GetAsync(space.OrganizationId, userId);
-            if (member is null || (member.Role != OrganizationMemberRole.Owner && member.Role != OrganizationMemberRole.Manager))
+            if (member is null) return Forbid();
+
+            if (member.Role == OrganizationMemberRole.Manager && !await _spaceManagerRepository.IsManagerOfSpaceAsync(space.Id, userId))
+                return Forbid();
+
+            if (member.Role != OrganizationMemberRole.Owner && member.Role != OrganizationMemberRole.Manager)
                 return Forbid();
         }
 
