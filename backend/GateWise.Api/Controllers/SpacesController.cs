@@ -85,16 +85,15 @@ public class SpacesController : ControllerBase
         {
             var userId = GetUserId();
             var memberships = await _memberRepositorysitory.GetByUserIdAsync(userId);
-            var managerMembership = memberships.FirstOrDefault(m =>
-                m.Role == OrganizationMemberRole.Owner || m.Role == OrganizationMemberRole.Manager);
+            var ownerMembership = memberships.FirstOrDefault(m => m.Role == OrganizationMemberRole.Owner);
 
-            if (managerMembership is null)
+            if (ownerMembership is null)
                 return Forbid();
 
-            organizationId = dto.OrganizationId ?? managerMembership.OrganizationId;
+            organizationId = dto.OrganizationId ?? ownerMembership.OrganizationId;
 
             var membership = await _memberRepositorysitory.GetAsync(organizationId, userId);
-            if (membership is null || (membership.Role != OrganizationMemberRole.Owner && membership.Role != OrganizationMemberRole.Manager))
+            if (membership is null || membership.Role != OrganizationMemberRole.Owner)
                 return Forbid();
         }
 
