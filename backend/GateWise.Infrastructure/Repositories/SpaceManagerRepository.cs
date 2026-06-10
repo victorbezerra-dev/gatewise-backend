@@ -30,6 +30,20 @@ public class SpaceManagerRepository : ISpaceManagerRepository
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    public async Task<IEnumerable<SpaceManager>> GetByUserIdAsync(string userId)
+    {
+        return await _context.SpaceManagers
+            .Include(s => s.Space)
+            .Where(s => s.UserId == userId)
+            .ToListAsync();
+    }
+
+    public async Task<bool> IsManagerOfSpaceAsync(int spaceId, string userId)
+    {
+        return await _context.SpaceManagers
+            .AnyAsync(s => s.SpaceId == spaceId && s.UserId == userId);
+    }
+
     public async Task AddAsync(SpaceManager spaceManager)
     {
         _context.SpaceManagers.Add(spaceManager);
