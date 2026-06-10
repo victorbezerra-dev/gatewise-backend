@@ -18,17 +18,23 @@ public class OrganizationsController : ControllerBase
     private readonly IOrganizationMemberRepository _memberRepositorysitory;
     private readonly IOrganizationInviteRepository _inviteRepositorysitory;
     private readonly ISpaceManagerRepository _spaceManagerRepository;
+    private readonly IAccessGrantRepository _accessGrantRepository;
+    private readonly ISpaceRepository _spaceRepository;
 
     public OrganizationsController(
         IOrganizationRepository organizationRepository,
         IOrganizationMemberRepository memberRepository,
         IOrganizationInviteRepository inviteRepository,
-        ISpaceManagerRepository spaceManagerRepository)
+        ISpaceManagerRepository spaceManagerRepository,
+        IAccessGrantRepository accessGrantRepository,
+        ISpaceRepository spaceRepository)
     {
         _organizationRepository = organizationRepository;
         _memberRepositorysitory = memberRepository;
         _inviteRepositorysitory = inviteRepository;
         _spaceManagerRepository = spaceManagerRepository;
+        _accessGrantRepository = accessGrantRepository;
+        _spaceRepository = spaceRepository;
     }
 
     [HttpGet]
@@ -69,13 +75,33 @@ public class OrganizationsController : ControllerBase
             if (member is null) return Forbid();
         }
 
+        List<object> managedSpaces;
+
+        if (User.IsInRole("admin") || member?.Role == OrganizationMemberRole.Owner)
+        {
+            var allSpaces = await _spaceRepository.GetByOrganizationIdAsync(id);
+            managedSpaces = allSpaces.Select(s => (object)new { spaceId = s.Id, name = s.Name }).ToList();
+        }
+        else if (member?.Role == OrganizationMemberRole.Manager)
+        {
+            managedSpaces = (await _spaceManagerRepository.GetByUserIdAsync(userId))
+                .Where(sm => sm.Space.OrganizationId == id)
+                .Select(sm => (object)new { spaceId = sm.SpaceId, name = sm.Space.Name })
+                .ToList();
+        }
+        else
+        {
+            managedSpaces = [];
+        }
+
         return Ok(new
         {
             Organization = OrganizationResponseDto.From(org),
             member?.Role,
             member?.JoinedAt,
             member?.StartsAt,
-            member?.ExpiresAt
+            member?.ExpiresAt,
+            ManagedSpaces = managedSpaces
         });
     }
 
@@ -156,8 +182,23 @@ public class OrganizationsController : ControllerBase
         if (!User.IsInRole("admin"))
         {
             var caller = await _memberRepositorysitory.GetAsync(id, userId);
-            if (caller is null || caller.Role != OrganizationMemberRole.Owner)
+            if (caller is null) return Forbid();
+
+            if (caller.Role == OrganizationMemberRole.Manager)
+            {
+                if (dto.Role != OrganizationMemberRole.Member)
+                    return Forbid();
+
+                foreach (var spaceId in dto.SpaceIds)
+                {
+                    if (!await _spaceManagerRepository.IsManagerOfSpaceAsync(spaceId, userId))
+                        return BadRequest($"You are not a manager of space {spaceId}.");
+                }
+            }
+            else if (caller.Role != OrganizationMemberRole.Owner)
+            {
                 return Forbid();
+            }
         }
 
         var org = await _organizationRepository.GetByIdAsync(id);
@@ -240,6 +281,20 @@ public class OrganizationsController : ControllerBase
                 {
                     SpaceId = inviteSpace.SpaceId,
                     UserId = userId
+                });
+            }
+        }
+        else if (invite.Role == OrganizationMemberRole.Member)
+        {
+            foreach (var inviteSpace in invite.InviteSpaces)
+            {
+                await _accessGrantRepository.AddAsync(new AccessGrant
+                {
+                    AuthorizedUserId = userId,
+                    SpaceId = inviteSpace.SpaceId,
+                    Status = AccessGrantStatus.Granted,
+                    GrantedAt = DateTime.UtcNow,
+                    Reason = "Granted via invite"
                 });
             }
         }
