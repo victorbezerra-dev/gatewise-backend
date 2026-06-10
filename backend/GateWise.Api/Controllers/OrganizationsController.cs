@@ -234,7 +234,22 @@ public class OrganizationsController : ControllerBase
         if (!User.IsInRole("admin"))
         {
             var caller = await _memberRepositorysitory.GetAsync(id, userId);
-            if (caller is null || caller.Role != OrganizationMemberRole.Owner)
+            if (caller is null) return Forbid();
+
+            if (caller.Role == OrganizationMemberRole.Manager)
+            {
+                var managedSpaceIds = (await _spaceManagerRepository.GetByUserIdAsync(userId))
+                    .Where(sm => sm.Space.OrganizationId == id)
+                    .Select(sm => sm.SpaceId)
+                    .ToHashSet();
+
+                var allInvites = await _inviteRepositorysitory.GetByOrganizationIdAsync(id);
+                return Ok(allInvites
+                    .Where(i => i.InviteSpaces.Any(s => managedSpaceIds.Contains(s.SpaceId)))
+                    .Select(InviteResponseDto.From));
+            }
+
+            if (caller.Role != OrganizationMemberRole.Owner)
                 return Forbid();
         }
 
