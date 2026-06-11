@@ -326,7 +326,9 @@ public class OrganizationsController : ControllerBase
     public async Task<IActionResult> GetMembers(int id)
     {
         var userId = GetUserId();
-        if (!User.IsInRole("admin") && !await _memberRepositorysitory.IsOwnerOrManagerAsync(id, userId))
+        var membership = User.IsInRole("admin") ? null : await _memberRepositorysitory.GetAsync(id, userId);
+
+        if (!User.IsInRole("admin") && membership is null)
             return Forbid();
 
         var members = await _memberRepositorysitory.GetByOrganizationIdAsync(id);
@@ -343,7 +345,23 @@ public class OrganizationsController : ControllerBase
             .GroupBy(ag => ag.AuthorizedUserId)
             .ToDictionary(g => g.Key, g => g.Select(ag => new { spaceId = ag.SpaceId, name = ag.Space.Name }).ToList());
 
-        return Ok(members.Select(m => new
+        HashSet<int> GetMemberSpaceIds(OrganizationMember m) => m.Role switch
+        {
+            OrganizationMemberRole.Owner => [.. allSpaces.Select(s => s.spaceId)],
+            OrganizationMemberRole.Manager => [.. spaceManagersByUser.GetValueOrDefault(m.UserId, []).Select(s => s.spaceId)],
+            OrganizationMemberRole.Member => [.. accessGrantsByUser.GetValueOrDefault(m.UserId, []).Select(s => s.spaceId)],
+            _ => []
+        };
+
+        IEnumerable<OrganizationMember> filteredMembers = members;
+
+        if (!User.IsInRole("admin") && membership!.Role != OrganizationMemberRole.Owner)
+        {
+            var callerSpaceIds = GetMemberSpaceIds(membership);
+            filteredMembers = members.Where(m => GetMemberSpaceIds(m).Overlaps(callerSpaceIds));
+        }
+
+        return Ok(filteredMembers.Select(m => new
         {
             m.Id,
             m.UserId,
