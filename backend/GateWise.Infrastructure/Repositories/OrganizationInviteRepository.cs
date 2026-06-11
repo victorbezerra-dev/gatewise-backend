@@ -16,7 +16,7 @@ public class OrganizationInviteRepository : IOrganizationInviteRepository
 
     public async Task<OrganizationInvite?> GetByIdAsync(int id) =>
         await _context.OrganizationInvites
-            .Include(i => i.InviteSpaces)
+            .Include(i => i.InviteSpaces).ThenInclude(s => s.Space)
             .FirstOrDefaultAsync(i => i.Id == id);
 
     public async Task<OrganizationInvite?> GetByCodeAsync(string code) =>

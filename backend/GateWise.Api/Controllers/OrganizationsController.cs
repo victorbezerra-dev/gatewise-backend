@@ -216,14 +216,13 @@ public class OrganizationsController : ControllerBase
             MemberStartsAt = dto.MemberStartsAt,
             MemberExpiresAt = dto.MemberExpiresAt,
             CreatedAt = DateTime.UtcNow,
-            InviteSpaces = dto.Role == OrganizationMemberRole.Manager
-                ? dto.SpaceIds.Select(spaceId => new OrganizationInviteSpace { SpaceId = spaceId }).ToList()
-                : []
+            InviteSpaces = dto.SpaceIds.Select(spaceId => new OrganizationInviteSpace { SpaceId = spaceId }).ToList()
         };
 
         await _inviteRepositorysitory.AddAsync(invite);
 
-        return Ok(InviteResponseDto.From(invite));
+        var created = await _inviteRepositorysitory.GetByIdAsync(invite.Id);
+        return Ok(InviteResponseDto.From(created!));
     }
 
     [HttpGet("{id}/invites")]
