@@ -361,8 +361,11 @@ public class OrganizationsController : ControllerBase
         if (member.UserId == GetUserId())
             return BadRequest("Cannot change your own role.");
 
+        if (dto.Role == OrganizationMemberRole.Manager && (dto.SpaceIds is null || dto.SpaceIds.Count == 0))
+            return BadRequest("SpaceIds are required when assigning the Manager role.");
+
         member.Role = dto.Role;
-        await _memberRepositorysitory.UpdateAsync(member);
+        await _memberRepositorysitory.UpdateRoleWithSpacesAsync(member, dto.SpaceIds);
         return NoContent();
     }
 

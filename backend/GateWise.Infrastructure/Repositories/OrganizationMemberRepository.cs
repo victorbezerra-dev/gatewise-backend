@@ -55,6 +55,26 @@ public class OrganizationMemberRepository : IOrganizationMemberRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task UpdateRoleWithSpacesAsync(OrganizationMember member, IEnumerable<int>? newSpaceIds)
+    {
+        _context.OrganizationMembers.Update(member);
+
+        var existingManagers = await _context.SpaceManagers
+            .Include(sm => sm.Space)
+            .Where(sm => sm.UserId == member.UserId && sm.Space.OrganizationId == member.OrganizationId)
+            .ToListAsync();
+
+        _context.SpaceManagers.RemoveRange(existingManagers);
+
+        if (member.Role == OrganizationMemberRole.Manager && newSpaceIds is not null)
+        {
+            foreach (var spaceId in newSpaceIds)
+                _context.SpaceManagers.Add(new SpaceManager { SpaceId = spaceId, UserId = member.UserId });
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
     public async Task DeleteAsync(OrganizationMember member)
     {
         _context.OrganizationMembers.Remove(member);

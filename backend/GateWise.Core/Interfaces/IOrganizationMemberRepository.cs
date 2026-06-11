@@ -12,5 +12,6 @@ public interface IOrganizationMemberRepository
     Task<bool> IsOwnerOrManagerAsync(int organizationId, string userId);
     Task AddAsync(OrganizationMember member);
     Task UpdateAsync(OrganizationMember member);
+    Task UpdateRoleWithSpacesAsync(OrganizationMember member, IEnumerable<int>? newSpaceIds);
     Task DeleteAsync(OrganizationMember member);
 }
