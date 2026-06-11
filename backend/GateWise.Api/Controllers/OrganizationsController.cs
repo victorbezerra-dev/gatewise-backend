@@ -359,6 +359,9 @@ public class OrganizationsController : ControllerBase
         if (member is null || member.OrganizationId != id)
             return NotFound();
 
+        if (member.UserId == GetUserId())
+            return BadRequest("Cannot change your own role.");
+
         member.Role = dto.Role;
         await _memberRepositorysitory.UpdateAsync(member);
         return NoContent();
