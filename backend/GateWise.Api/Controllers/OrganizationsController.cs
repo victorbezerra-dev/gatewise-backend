@@ -386,6 +386,46 @@ public class OrganizationsController : ControllerBase
         return NoContent();
     }
 
+    [HttpDelete("{id}/invites/{inviteId}/spaces/{spaceId}")]
+    public async Task<IActionResult> RemoveSpaceFromInvite(int id, int inviteId, int spaceId)
+    {
+        var userId = GetUserId();
+
+        var invite = await _inviteRepositorysitory.GetByIdAsync(inviteId);
+        if (invite is null || invite.OrganizationId != id)
+            return NotFound();
+
+        if (!invite.InviteSpaces.Any(s => s.SpaceId == spaceId))
+            return NotFound();
+
+        if (!User.IsInRole("admin"))
+        {
+            var caller = await _memberRepositorysitory.GetAsync(id, userId);
+            if (caller is null) return Forbid();
+
+            if (caller.Role == OrganizationMemberRole.Manager)
+            {
+                if (!await _spaceManagerRepository.IsManagerOfSpaceAsync(spaceId, userId))
+                    return Forbid();
+            }
+            else if (caller.Role != OrganizationMemberRole.Owner)
+            {
+                return Forbid();
+            }
+        }
+
+        await _inviteRepositorysitory.RemoveSpacesAsync(inviteId, [spaceId]);
+
+        var remaining = invite.InviteSpaces.Count - 1;
+        if (remaining == 0)
+        {
+            invite.IsActive = false;
+            await _inviteRepositorysitory.UpdateAsync(invite);
+        }
+
+        return NoContent();
+    }
+
     private string GetUserId() =>
         User.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? throw new UnauthorizedAccessException();

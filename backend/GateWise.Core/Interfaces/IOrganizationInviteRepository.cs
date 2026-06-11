@@ -9,4 +9,5 @@ public interface IOrganizationInviteRepository
     Task<IEnumerable<OrganizationInvite>> GetByOrganizationIdAsync(int organizationId);
     Task AddAsync(OrganizationInvite invite);
     Task UpdateAsync(OrganizationInvite invite);
+    Task RemoveSpacesAsync(int inviteId, IEnumerable<int> spaceIds);
 }

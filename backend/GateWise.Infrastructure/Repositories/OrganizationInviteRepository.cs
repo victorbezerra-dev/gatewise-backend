@@ -15,7 +15,9 @@ public class OrganizationInviteRepository : IOrganizationInviteRepository
     }
 
     public async Task<OrganizationInvite?> GetByIdAsync(int id) =>
-        await _context.OrganizationInvites.FindAsync(id);
+        await _context.OrganizationInvites
+            .Include(i => i.InviteSpaces)
+            .FirstOrDefaultAsync(i => i.Id == id);
 
     public async Task<OrganizationInvite?> GetByCodeAsync(string code) =>
         await _context.OrganizationInvites
@@ -38,6 +40,15 @@ public class OrganizationInviteRepository : IOrganizationInviteRepository
     public async Task UpdateAsync(OrganizationInvite invite)
     {
         _context.OrganizationInvites.Update(invite);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task RemoveSpacesAsync(int inviteId, IEnumerable<int> spaceIds)
+    {
+        var toRemove = await _context.OrganizationInviteSpaces
+            .Where(s => s.InviteId == inviteId && spaceIds.Contains(s.SpaceId))
+            .ToListAsync();
+        _context.OrganizationInviteSpaces.RemoveRange(toRemove);
         await _context.SaveChangesAsync();
     }
 }
