@@ -384,6 +384,7 @@ public class OrganizationsController : ControllerBase
             return NotFound();
 
         await _spaceManagerRepository.DeleteAsync(spaceManager);
+        await RemoveIfOrphanedAsync(space.OrganizationId, spaceManager.UserId);
         return NoContent();
     }
 
@@ -467,6 +468,21 @@ public class OrganizationsController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    private async Task RemoveIfOrphanedAsync(int orgId, string userId)
+    {
+        var member = await _memberRepositorysitory.GetAsync(orgId, userId);
+        if (member is null || member.Role == OrganizationMemberRole.Owner)
+            return;
+
+        var hasGrants = (await _accessGrantRepository.GetByUserIdAsync(userId))
+            .Any(g => g.Space.OrganizationId == orgId);
+        var hasManaged = (await _spaceManagerRepository.GetByUserIdAsync(userId))
+            .Any(sm => sm.Space.OrganizationId == orgId);
+
+        if (!hasGrants && !hasManaged)
+            await _memberRepositorysitory.DeleteAsync(member);
     }
 
     private string GetUserId() =>

@@ -191,6 +191,7 @@ public class AccessGrantsController : ControllerBase
         }
 
         await _accessGrantRepository.DeleteAsync(accessGrant);
+        await RemoveIfOrphanedAsync(accessGrant.Space.OrganizationId, accessGrant.AuthorizedUserId);
         return NoContent();
     }
 
@@ -206,6 +207,21 @@ public class AccessGrantsController : ControllerBase
 
         var accessGrants = await _accessGrantRepository.GetByUserIdAsync(userId);
         return Ok(accessGrants.Select(AccessGrantResponseDto.From));
+    }
+
+    private async Task RemoveIfOrphanedAsync(int orgId, string userId)
+    {
+        var member = await _memberRepository.GetAsync(orgId, userId);
+        if (member is null || member.Role == OrganizationMemberRole.Owner)
+            return;
+
+        var hasGrants = (await _accessGrantRepository.GetByUserIdAsync(userId))
+            .Any(g => g.Space.OrganizationId == orgId);
+        var hasManaged = (await _spaceManagerRepository.GetByUserIdAsync(userId))
+            .Any(sm => sm.Space.OrganizationId == orgId);
+
+        if (!hasGrants && !hasManaged)
+            await _memberRepository.DeleteAsync(member);
     }
 
     private string GetUserId() =>
