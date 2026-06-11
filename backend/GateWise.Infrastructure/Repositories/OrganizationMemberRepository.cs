@@ -49,6 +49,12 @@ public class OrganizationMemberRepository : IOrganizationMemberRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task UpdateAsync(OrganizationMember member)
+    {
+        _context.OrganizationMembers.Update(member);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task DeleteAsync(OrganizationMember member)
     {
         _context.OrganizationMembers.Remove(member);

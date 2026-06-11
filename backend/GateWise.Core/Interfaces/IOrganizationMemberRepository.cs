@@ -11,5 +11,6 @@ public interface IOrganizationMemberRepository
     Task<OrganizationMember?> GetAsync(int organizationId, string userId);
     Task<bool> IsOwnerOrManagerAsync(int organizationId, string userId);
     Task AddAsync(OrganizationMember member);
+    Task UpdateAsync(OrganizationMember member);
     Task DeleteAsync(OrganizationMember member);
 }

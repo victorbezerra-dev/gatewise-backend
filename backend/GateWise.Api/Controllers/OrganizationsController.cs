@@ -344,6 +344,49 @@ public class OrganizationsController : ControllerBase
         }));
     }
 
+    [HttpPut("{id}/members/{memberId}/role")]
+    public async Task<IActionResult> UpdateMemberRole(int id, int memberId, [FromBody] UpdateMemberRoleDto dto)
+    {
+        var userId = GetUserId();
+        if (!User.IsInRole("admin"))
+        {
+            var caller = await _memberRepositorysitory.GetAsync(id, userId);
+            if (caller is null || caller.Role != OrganizationMemberRole.Owner)
+                return Forbid();
+        }
+
+        var member = await _memberRepositorysitory.GetByIdAsync(memberId);
+        if (member is null || member.OrganizationId != id)
+            return NotFound();
+
+        member.Role = dto.Role;
+        await _memberRepositorysitory.UpdateAsync(member);
+        return NoContent();
+    }
+
+    [HttpDelete("{id}/spaces/{spaceId}/managers/{spaceManagerId}")]
+    public async Task<IActionResult> RemoveSpaceManager(int id, int spaceId, int spaceManagerId)
+    {
+        var userId = GetUserId();
+        if (!User.IsInRole("admin"))
+        {
+            var caller = await _memberRepositorysitory.GetAsync(id, userId);
+            if (caller is null || caller.Role != OrganizationMemberRole.Owner)
+                return Forbid();
+        }
+
+        var spaceManager = await _spaceManagerRepository.GetByIdAsync(spaceManagerId);
+        if (spaceManager is null || spaceManager.SpaceId != spaceId)
+            return NotFound();
+
+        var space = await _spaceRepository.GetByIdAsync(spaceId);
+        if (space is null || space.OrganizationId != id)
+            return NotFound();
+
+        await _spaceManagerRepository.DeleteAsync(spaceManager);
+        return NoContent();
+    }
+
     [HttpDelete("{id}/members/{memberId}")]
     public async Task<IActionResult> RemoveMember(int id, int memberId)
     {
