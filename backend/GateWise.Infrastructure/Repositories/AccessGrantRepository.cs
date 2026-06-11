@@ -1,4 +1,5 @@
 using GateWise.Core.Entities;
+using GateWise.Core.Enums;
 using GateWise.Core.Interfaces;
 using GateWise.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -52,6 +53,14 @@ public class AccessGrantRepository : IAccessGrantRepository
             .Include(g => g.GrantedByUser)
             .Include(g => g.Space)
             .Where(g => g.AuthorizedUserId == userId)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<AccessGrant>> GetByOrganizationIdAsync(int organizationId)
+    {
+        return await _context.AccessGrants
+            .Include(g => g.Space)
+            .Where(g => g.Space.OrganizationId == organizationId && g.Status == AccessGrantStatus.Granted)
             .ToListAsync();
     }
 

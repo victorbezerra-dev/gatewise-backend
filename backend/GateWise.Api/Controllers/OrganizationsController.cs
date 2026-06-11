@@ -330,6 +330,19 @@ public class OrganizationsController : ControllerBase
             return Forbid();
 
         var members = await _memberRepositorysitory.GetByOrganizationIdAsync(id);
+
+        var allSpaces = (await _spaceRepository.GetByOrganizationIdAsync(id))
+            .Select(s => new { spaceId = s.Id, name = s.Name })
+            .ToList();
+
+        var spaceManagersByUser = (await _spaceManagerRepository.GetByOrganizationIdAsync(id))
+            .GroupBy(sm => sm.UserId)
+            .ToDictionary(g => g.Key, g => g.Select(sm => new { spaceId = sm.SpaceId, name = sm.Space.Name }).ToList());
+
+        var accessGrantsByUser = (await _accessGrantRepository.GetByOrganizationIdAsync(id))
+            .GroupBy(ag => ag.AuthorizedUserId)
+            .ToDictionary(g => g.Key, g => g.Select(ag => new { spaceId = ag.SpaceId, name = ag.Space.Name }).ToList());
+
         return Ok(members.Select(m => new
         {
             m.Id,
@@ -339,7 +352,14 @@ public class OrganizationsController : ControllerBase
             m.Role,
             m.JoinedAt,
             m.StartsAt,
-            m.ExpiresAt
+            m.ExpiresAt,
+            Spaces = m.Role switch
+            {
+                OrganizationMemberRole.Owner => (object)allSpaces,
+                OrganizationMemberRole.Manager => spaceManagersByUser.GetValueOrDefault(m.UserId, []),
+                OrganizationMemberRole.Member => accessGrantsByUser.GetValueOrDefault(m.UserId, []),
+                _ => Array.Empty<object>()
+            }
         }));
     }
 

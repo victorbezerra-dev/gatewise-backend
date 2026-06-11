@@ -38,6 +38,14 @@ public class SpaceManagerRepository : ISpaceManagerRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<SpaceManager>> GetByOrganizationIdAsync(int organizationId)
+    {
+        return await _context.SpaceManagers
+            .Include(s => s.Space)
+            .Where(s => s.Space.OrganizationId == organizationId)
+            .ToListAsync();
+    }
+
     public async Task<bool> IsManagerOfSpaceAsync(int spaceId, string userId)
     {
         return await _context.SpaceManagers
