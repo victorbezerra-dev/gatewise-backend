@@ -13,7 +13,7 @@ public class SpacesController : ControllerBase
 {
     private readonly ISpaceRepository _spaceRepository;
     private readonly ISpaceAccessService _spaceAccessService;
-    private readonly IOrganizationMemberRepository _memberRepositorysitory;
+    private readonly IOrganizationMemberRepository _memberRepository;
     private readonly ISpaceManagerRepository _spaceManagerRepository;
 
     public SpacesController(
@@ -24,75 +24,33 @@ public class SpacesController : ControllerBase
     {
         _spaceRepository = spaceRepository;
         _spaceAccessService = spaceAccessService;
-        _memberRepositorysitory = memberRepository;
+        _memberRepository = memberRepository;
         _spaceManagerRepository = spaceManagerRepository;
     }
 
     [Authorize]
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<SpaceResponseDto>>> GetAll()
+    [HttpGet("/api/organizations/{organizationId}/spaces")]
+    public async Task<ActionResult<IEnumerable<SpaceResponseDto>>> GetByOrganization(int organizationId)
     {
-        if (User.IsInRole("admin"))
+        if (!User.IsInRole("admin"))
         {
-            var allSpaces = await _spaceRepository.GetAllAsync();
-            return Ok(allSpaces.Select(SpaceResponseDto.From));
+            var userId = GetUserId();
+            var membership = await _memberRepository.GetAsync(organizationId, userId);
+            if (membership is null) return Forbid();
         }
 
-        var userId = GetUserId();
-        var memberships = await _memberRepositorysitory.GetByUserIdAsync(userId);
-        var orgIds = memberships.Select(m => m.OrganizationId).ToHashSet();
-
-        if (orgIds.Count == 0)
-            return Ok(Array.Empty<SpaceResponseDto>());
-
-        var spaces = new List<Space>();
-        foreach (var orgId in orgIds)
-            spaces.AddRange(await _spaceRepository.GetByOrganizationIdAsync(orgId));
-
+        var spaces = await _spaceRepository.GetByOrganizationIdAsync(organizationId);
         return Ok(spaces.Select(SpaceResponseDto.From));
     }
 
     [Authorize]
-    [HttpGet("{id}")]
-    public async Task<ActionResult<SpaceResponseDto>> Get(int id)
+    [HttpPost("/api/organizations/{organizationId}/spaces")]
+    public async Task<ActionResult<SpaceResponseDto>> Create(int organizationId, [FromBody] SpaceUpsertDto dto)
     {
-        var space = await _spaceRepository.GetByIdAsync(id);
-        if (space is null) return NotFound();
-
         if (!User.IsInRole("admin"))
         {
             var userId = GetUserId();
-            var member = await _memberRepositorysitory.GetAsync(space.OrganizationId, userId);
-            if (member is null) return Forbid();
-        }
-
-        return Ok(SpaceResponseDto.From(space));
-    }
-
-    [Authorize]
-    [HttpPost]
-    public async Task<ActionResult<SpaceResponseDto>> Create([FromBody] SpaceUpsertDto dto)
-    {
-        int organizationId;
-
-        if (User.IsInRole("admin"))
-        {
-            if (dto.OrganizationId is null)
-                return BadRequest("OrganizationId is required for admin.");
-            organizationId = dto.OrganizationId.Value;
-        }
-        else
-        {
-            var userId = GetUserId();
-            var memberships = await _memberRepositorysitory.GetByUserIdAsync(userId);
-            var ownerMembership = memberships.FirstOrDefault(m => m.Role == OrganizationMemberRole.Owner);
-
-            if (ownerMembership is null)
-                return Forbid();
-
-            organizationId = dto.OrganizationId ?? ownerMembership.OrganizationId;
-
-            var membership = await _memberRepositorysitory.GetAsync(organizationId, userId);
+            var membership = await _memberRepository.GetAsync(organizationId, userId);
             if (membership is null || membership.Role != OrganizationMemberRole.Owner)
                 return Forbid();
         }
@@ -116,7 +74,24 @@ public class SpacesController : ControllerBase
         };
 
         await _spaceRepository.AddAsync(space);
-        return CreatedAtAction(nameof(Get), new { id = space.Id }, SpaceResponseDto.From(space));
+        return Ok(SpaceResponseDto.From(space));
+    }
+
+    [Authorize]
+    [HttpGet("{id}")]
+    public async Task<ActionResult<SpaceResponseDto>> Get(int id)
+    {
+        var space = await _spaceRepository.GetByIdAsync(id);
+        if (space is null) return NotFound();
+
+        if (!User.IsInRole("admin"))
+        {
+            var userId = GetUserId();
+            var member = await _memberRepository.GetAsync(space.OrganizationId, userId);
+            if (member is null) return Forbid();
+        }
+
+        return Ok(SpaceResponseDto.From(space));
     }
 
     [HttpPost("{id}/open")]
@@ -129,7 +104,7 @@ public class SpacesController : ControllerBase
         var space = await _spaceRepository.GetByIdAsync(id);
         if (space is null) return NotFound();
 
-        var member = await _memberRepositorysitory.GetAsync(space.OrganizationId, userId);
+        var member = await _memberRepository.GetAsync(space.OrganizationId, userId);
         if (member is null) return Forbid();
 
         var now = DateTime.UtcNow;
@@ -159,7 +134,7 @@ public class SpacesController : ControllerBase
         if (!User.IsInRole("admin"))
         {
             var userId = GetUserId();
-            var member = await _memberRepositorysitory.GetAsync(space.OrganizationId, userId);
+            var member = await _memberRepository.GetAsync(space.OrganizationId, userId);
             if (member is null) return Forbid();
 
             if (member.Role == OrganizationMemberRole.Manager && !await _spaceManagerRepository.IsManagerOfSpaceAsync(space.Id, userId))
@@ -196,7 +171,7 @@ public class SpacesController : ControllerBase
         if (!User.IsInRole("admin"))
         {
             var userId = GetUserId();
-            var member = await _memberRepositorysitory.GetAsync(space.OrganizationId, userId);
+            var member = await _memberRepository.GetAsync(space.OrganizationId, userId);
             if (member is null) return Forbid();
 
             if (member.Role == OrganizationMemberRole.Manager && !await _spaceManagerRepository.IsManagerOfSpaceAsync(space.Id, userId))
