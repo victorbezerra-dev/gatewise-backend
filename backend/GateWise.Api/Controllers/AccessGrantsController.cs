@@ -91,7 +91,7 @@ public class AccessGrantsController : ControllerBase
         var userId = GetUserId();
 
         var user = await _userRepository.GetByIdAsync(userId);
-        var space = await _spaceRepository.GetByIdAsync(dto.LabId);
+        var space = await _spaceRepository.GetByIdAsync(dto.SpaceId);
 
         if (user is null || space is null)
             return BadRequest("Invalid user or SpaceId.");
@@ -102,7 +102,7 @@ public class AccessGrantsController : ControllerBase
 
         var allAccessGrants = await _accessGrantRepository.GetAllAsync();
         var alreadyExists = allAccessGrants.Any(g =>
-            g.AuthorizedUserId == userId && g.SpaceId == dto.LabId);
+            g.AuthorizedUserId == userId && g.SpaceId == dto.SpaceId);
 
         if (alreadyExists)
             return Conflict("Access request already exists.");
@@ -110,7 +110,7 @@ public class AccessGrantsController : ControllerBase
         var newAccessGrant = new AccessGrant
         {
             AuthorizedUserId = userId,
-            SpaceId = dto.LabId,
+            SpaceId = dto.SpaceId,
             Reason = dto.Reason,
             Status = AccessGrantStatus.Pending,
             GrantedAt = DateTime.UtcNow
