@@ -501,10 +501,10 @@ public class OrganizationsController : ControllerBase
             }
         }
 
+        var isLastSpace = invite.InviteSpaces.Count == 1;
         await _inviteRepositorysitory.RemoveSpacesAsync(inviteId, [spaceId]);
 
-        var remaining = invite.InviteSpaces.Count - 1;
-        if (remaining == 0)
+        if (isLastSpace)
         {
             invite.IsActive = false;
             await _inviteRepositorysitory.UpdateAsync(invite);
