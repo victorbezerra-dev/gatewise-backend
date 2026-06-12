@@ -9,5 +9,4 @@ public class ReviewAccessGrantDto
     [EnumDataType(typeof(AccessGrantStatus))]
     public AccessGrantStatus Status { get; set; }
     public string? Reason { get; set; }
-    public DateTime? RevokedAt { get; set; }
 }

@@ -154,7 +154,7 @@ public class AccessGrantsController : ControllerBase
         }
         else if (dto.Status == AccessGrantStatus.Rejected)
         {
-            accessGrant.RevokedAt = dto.RevokedAt ?? DateTime.UtcNow;
+            accessGrant.RevokedAt = DateTime.UtcNow;
         }
 
         await _accessGrantRepository.UpdateAsync(accessGrant);
