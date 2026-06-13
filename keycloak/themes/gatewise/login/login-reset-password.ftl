@@ -85,7 +85,7 @@
                 autocomplete="username"
                 inputmode="email"
                 autofocus
-                placeholder="${msg("gatewiseUsernamePlaceholder")}"
+                placeholder="${msg("gatewiseEmailPlaceholder")}"
               />
             </div>
 

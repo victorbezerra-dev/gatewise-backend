@@ -206,10 +206,8 @@
                 <label for="username">
                   <#if !realm.loginWithEmailAllowed>
                     ${msg("username")}
-                  <#elseif !realm.registrationEmailAsUsername>
-                    ${msg("usernameOrEmail")}
                   <#else>
-                    ${msg("email")}
+                    ${msg("usernameOrEmail")}
                   </#if>
                 </label>
                 <input
