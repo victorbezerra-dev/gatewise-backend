@@ -4,6 +4,9 @@ Licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-
 
 Sistema de controle de acesso físico multi-tenant. Organizações independentes (empresas, condomínios, universidades) gerenciam seus próprios espaços e membros. Autentica usuários via Keycloak, verifica assinaturas RSA de dispositivos móveis, envia comandos de desbloqueio para fechaduras ESP32 via MQTT e entrega confirmações em tempo real via WebSocket (SignalR).
 
+## Hardware Image 
+<img width="400" height="500" alt="WhatsApp Image 2026-06-12 at 18 38 12" src="https://github.com/user-attachments/assets/92ba7797-2ed0-443d-a2c5-ecff2587b592" />
+
 ## Architecture
 
 ```
